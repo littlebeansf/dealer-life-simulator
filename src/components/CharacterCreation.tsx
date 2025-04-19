@@ -7,15 +7,17 @@ import {
   Text,
   Box,
   Tooltip,
+  Flex,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-import { Dealer, races, genders, Race, Gender } from "../types/character";
+import { Dealer, Race, Gender, races, genders } from "../types/character";
+import { createDealerState } from "../utils/createDealerState";
 import { generateRandomDealerData } from "../utils/helpers";
 
 const MotionBox = motion(Box);
-const MotionText = motion(Text); // ✨ Motion for animated Race Text
+const MotionText = motion(Text);
 
 interface CharacterCreationProps {
   onConfirm: (dealer: Dealer) => void;
@@ -48,8 +50,8 @@ export default function CharacterCreation({
   const handleRandomDealer = () => {
     const random = generateRandomDealerData();
     setName(random.name);
-    setRace(random.race as Race);
-    setGender(random.gender as Gender);
+    setRace(random.race);
+    setGender(random.gender);
 
     setShowSparkles(true);
     setTimeout(() => setShowSparkles(false), 800);
@@ -60,24 +62,33 @@ export default function CharacterCreation({
     left: `${Math.random() * 60 - 30}px`,
   }));
 
-  // Get selected race's description
   const selectedRaceInfo = races.find((r) => r.label === race);
 
   return (
     <MotionBox
-      p={6}
+      p={0}
       w="100vw"
       h="100vh"
-      bgGradient="linear(to-b, gray.900, black)"
-      color="white"
+      bg="brand.background"
+      color="brand.text"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
       position="relative"
       overflow="hidden"
+      display="flex"
+      flexDirection="column"
     >
-      <VStack spacing={8} justify="center" align="center" h="100%">
-        <Heading size="xl" textShadow="0 0 10px #00FFD1">
+      {/* Top Bar */}
+      <Flex bg="#2A2A2A" p={4} align="center" justify="center" width="100%">
+        <Heading size="lg" color="white">
+          Dealer Life Simulator
+        </Heading>
+      </Flex>
+
+      {/* Content */}
+      <VStack spacing={8} justify="center" align="center" flex="1">
+        <Heading size="xl" textAlign="center">
           Summon Your Dealer
         </Heading>
 
@@ -86,11 +97,18 @@ export default function CharacterCreation({
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxW="300px"
-          bg="gray.700"
+          bg="brand.surface"
+          borderColor="gray.600"
           _placeholder={{ color: "gray.400" }}
         />
 
-        <Box textAlign="center">
+        <Box
+          textAlign="center"
+          bg="brand.surface"
+          p={6}
+          borderRadius="md"
+          shadow="md"
+        >
           <Text mb={2} fontWeight="bold">
             Select Your Lineage:
           </Text>
@@ -100,10 +118,10 @@ export default function CharacterCreation({
                 key={r.label}
                 label={r.description}
                 fontSize="sm"
-                bg="purple.700"
+                bg="gray.700"
               >
                 <Button
-                  onClick={() => setRace(r.label)}
+                  onClick={() => setRace(r.label as Race)}
                   colorScheme={race === r.label ? "purple" : "gray"}
                   fontSize="2xl"
                 >
@@ -113,12 +131,11 @@ export default function CharacterCreation({
             ))}
           </HStack>
 
-          {/* 🪄 Selected Race Display */}
           {selectedRaceInfo && (
             <MotionText
               mt={4}
               fontSize="lg"
-              color="purple.300"
+              color="gray.300"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -128,15 +145,21 @@ export default function CharacterCreation({
           )}
         </Box>
 
-        <Box>
+        <Box
+          textAlign="center"
+          bg="brand.surface"
+          p={6}
+          borderRadius="md"
+          shadow="md"
+        >
           <Text mb={2} fontWeight="bold">
             Select Your Form:
           </Text>
-          <HStack>
+          <HStack wrap="wrap" spacing={4} justify="center">
             {genders.map((g) => (
               <Button
                 key={g.label}
-                onClick={() => setGender(g.label)}
+                onClick={() => setGender(g.label as Gender)}
                 colorScheme={gender === g.label ? "purple" : "gray"}
               >
                 {g.icon}
@@ -163,7 +186,6 @@ export default function CharacterCreation({
             🎲 Roll Random Dealer
           </Button>
 
-          {/* Sparkles */}
           {showSparkles &&
             sparklePositions.map((pos, idx) => (
               <motion.div
@@ -175,7 +197,7 @@ export default function CharacterCreation({
                   position: "absolute",
                   width: "8px",
                   height: "8px",
-                  backgroundColor: "#00FFD1",
+                  backgroundColor: "#E0E0E0",
                   borderRadius: "50%",
                   top: pos.top,
                   left: pos.left,
