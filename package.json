@@ -5,8 +5,9 @@
   "type": "module",
   "homepage": "https://littlebeansf.github.io/dealer-life-simulator/",
   "scripts": {
+    "clean": "rm -rf dist",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run clean && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist"
