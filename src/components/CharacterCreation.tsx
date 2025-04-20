@@ -12,8 +12,8 @@ import {
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-import { Dealer, Race, Gender, races, genders } from "../types/character";
-import { generateRandomDealerData } from "../utils/helpers";
+import { races, genders, Gender, Race, Dealer } from "@/types/character";
+import { generateRandomDealerData } from "@/utils/helpers";
 
 const MotionBox = motion(Box);
 const MotionText = motion(Text);
@@ -63,30 +63,40 @@ export default function CharacterCreation({
 
   const selectedRaceInfo = races.find((r) => r.label === race);
 
+  // Better emoji icons for gender
+  const genderIcons = {
+    Male: "🚹",
+    Female: "🚺",
+    Other: "🧿",
+  };
+
   return (
     <MotionBox
       p={0}
       w="100vw"
-      h="100vh"
+      h="100dvh" // ✅ Dynamic Viewport Height for mobile!
       bg="brand.background"
       color="brand.text"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-      position="relative"
-      overflow="hidden"
       display="flex"
       flexDirection="column"
+      overflow="hidden"
     >
       {/* Top Bar */}
-      <Flex bg="#2A2A2A" p={4} align="center" justify="center" width="100%">
+      <Flex bg="#2A2A2A" p={4} align="center" justify="center" flexShrink={0}>
         <Heading size="lg" color="white">
           Dealer Life Simulator
         </Heading>
       </Flex>
 
-      {/* Content */}
-      <VStack spacing={8} justify="center" align="center" flex="1">
+      {/* Scrollable Content */}
+      <VStack
+        spacing={8}
+        justify="center"
+        align="center"
+        flex="1"
+        overflowY="auto"
+        p={4}
+      >
         <Heading size="xl" textAlign="center">
           Summon Your Dealer
         </Heading>
@@ -123,6 +133,7 @@ export default function CharacterCreation({
                   onClick={() => setRace(r.label as Race)}
                   colorScheme={race === r.label ? "purple" : "gray"}
                   fontSize="2xl"
+                  size="sm"
                 >
                   {r.icon}
                 </Button>
@@ -160,14 +171,21 @@ export default function CharacterCreation({
                 key={g.label}
                 onClick={() => setGender(g.label as Gender)}
                 colorScheme={gender === g.label ? "purple" : "gray"}
+                size="sm"
+                fontSize="2xl"
               >
-                {g.icon}
+                {genderIcons[g.label as keyof typeof genderIcons]}
               </Button>
             ))}
           </HStack>
         </Box>
 
-        <HStack spacing={4} position="relative">
+        <HStack
+          spacing={4}
+          position="relative"
+          flexWrap="wrap"
+          justify="center"
+        >
           <Button
             colorScheme="teal"
             size="lg"

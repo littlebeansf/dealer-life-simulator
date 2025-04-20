@@ -1,35 +1,13 @@
-import {
-  Box,
-  Button,
-  Flex,
-  HStack,
-  VStack,
-  Text,
-  Progress,
-  Heading,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Tooltip,
-  IconButton,
-  SimpleGrid,
-  Input,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
-  useToast,
-} from "@chakra-ui/react";
-import { SettingsIcon } from "@chakra-ui/icons";
-import { DealerState } from "../types/game";
-import { products } from "../data/products";
-import { advanceTime, generateMarketPrices } from "../utils/gameLogic";
+import { Flex } from "@chakra-ui/react";
+import { DealerState } from "@/types/game";
+import { products } from "@/data/products";
+import { advanceTime, generateMarketPrices } from "@/utils/gameLogic";
 import { useState, useEffect } from "react";
-import { raceIcons } from "../utils/raceIcons";
-import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
+
+import TopBar from "@/components/TopBar";
+import DealerPanel from "@/components/DealerPanel";
+import MarketPanel from "@/components/MarketPanel";
+import StoragePanel from "@/components/StoragePanel";
 
 interface MainGameProps {
   dealerState: DealerState;
@@ -43,8 +21,6 @@ export default function MainGame({
   const [marketPrices, setMarketPrices] = useState<Record<string, number>>({});
   const [buyAmounts, setBuyAmounts] = useState<Record<string, number>>({});
   const [defaultBuyAmount, setDefaultBuyAmount] = useState<number>(1);
-  const toast = useToast();
-  const animatedGold = useAnimatedNumber(dealerState.stats.gold);
 
   const monthNames = [
     "January",
@@ -115,13 +91,6 @@ export default function MainGame({
       stats: { ...dealerState.stats, gold: newGold },
       storage: newStorage,
     });
-
-    toast({
-      title: `✅ Bought ${quantity} ${product.name}(s)!`,
-      status: "success",
-      duration: 2000,
-      isClosable: true,
-    });
   };
 
   const handleSellAmount = (productId: string, amount: number) => {
@@ -150,13 +119,6 @@ export default function MainGame({
       stats: { ...dealerState.stats, gold: newGold },
       storage: newStorage,
     });
-
-    toast({
-      title: `💰 Sold ${sellAmount} ${product?.name}(s)!`,
-      status: "info",
-      duration: 2000,
-      isClosable: true,
-    });
   };
 
   const handleSellAll = (productId: string) => {
@@ -181,13 +143,6 @@ export default function MainGame({
       stats: { ...dealerState.stats, gold: newGold },
       storage: newStorage,
     });
-
-    toast({
-      title: `💰 Sold all ${sellAmount} ${product?.name}(s)!`,
-      status: "info",
-      duration: 2000,
-      isClosable: true,
-    });
   };
 
   const totalStorageValue = dealerState.storage.reduce((sum, item) => {
@@ -198,41 +153,16 @@ export default function MainGame({
   return (
     <Flex
       direction="column"
-      height="100vh"
+      height="100dvh"
       bg="brand.background"
       overflow="hidden"
     >
       {/* Top Bar */}
-      <Flex
-        bg="#2A2A2A"
-        p={4}
-        align="center"
-        justify="center"
-        width="100%"
-        direction="column"
-      >
-        <Heading size="lg" color="white">
-          Dealer Life Simulator
-        </Heading>
-
-        {/* Central Button + Month/Year */}
-        <Flex mt={4} align="center" gap={4}>
-          <Tooltip label="Next Month" hasArrow>
-            <IconButton
-              aria-label="Next Month"
-              icon={<span style={{ fontSize: "36px" }}>📅</span>}
-              size="xl"
-              isRound
-              variant="solid"
-              colorScheme="gray"
-              onClick={handleNextTurn}
-            />
-          </Tooltip>
-          <Text fontSize="xl" fontWeight="bold" color="white">
-            {monthNames[dealerState.time.month]} {dealerState.time.year}
-          </Text>
-        </Flex>
-      </Flex>
+      <TopBar
+        onNextTurn={handleNextTurn}
+        month={monthNames[dealerState.time.month]}
+        year={dealerState.time.year}
+      />
 
       {/* Main Content */}
       <Flex
@@ -241,102 +171,7 @@ export default function MainGame({
         overflow="hidden"
       >
         {/* Left Panel: Dealer Stats */}
-        <Flex
-          direction="column"
-          bg="brand.surface"
-          p={4}
-          borderRadius="md"
-          minW={{ base: "100%", md: "300px" }}
-          align="center"
-          overflow="hidden"
-        >
-          <Box
-            boxSize="120px"
-            borderRadius="full"
-            bg="gray.600"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            fontSize="5xl"
-          >
-            {raceIcons[dealerState.race]}
-          </Box>
-
-          <Text fontSize="2xl" fontWeight="bold" color="brand.text" mt={4}>
-            {dealerState.name}
-          </Text>
-          <Text color="brand.text">
-            Age {dealerState.time.age} · {dealerState.gender}
-          </Text>
-
-          <Box mt={4} w="100%">
-            <Text fontSize="sm" color="brand.text">
-              ❤️ Life
-            </Text>
-            <Progress
-              value={dealerState.stats.life}
-              colorScheme="red"
-              size="sm"
-              borderRadius="md"
-            />
-            <Text fontSize="sm" color="brand.text" mt={2}>
-              🧠 Sanity
-            </Text>
-            <Progress
-              value={dealerState.stats.sanity}
-              colorScheme="blue"
-              size="sm"
-              borderRadius="md"
-            />
-          </Box>
-
-          <VStack spacing={3} mt={6} flex="1">
-            <HStack spacing={2}>
-              <Text fontSize="2xl" color="brand.text">
-                💪
-              </Text>
-              <Text color="brand.text">{dealerState.stats.strength}</Text>
-            </HStack>
-            <HStack spacing={2}>
-              <Text fontSize="2xl" color="brand.text">
-                🏃
-              </Text>
-              <Text color="brand.text">{dealerState.stats.speed}</Text>
-            </HStack>
-            <HStack spacing={2}>
-              <Text fontSize="2xl" color="brand.text">
-                💰
-              </Text>
-              <Text fontSize="xl" fontWeight="bold" color="brand.text">
-                {animatedGold} $
-              </Text>
-            </HStack>
-          </VStack>
-
-          {/* Settings Button */}
-          <Box mt={4}>
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                icon={<SettingsIcon />}
-                variant="outline"
-                colorScheme="gray"
-                aria-label="Settings"
-              />
-              <MenuList>
-                <MenuItem onClick={() => alert("Save Game coming soon!")}>
-                  Save Game
-                </MenuItem>
-                <MenuItem onClick={() => alert("Load Game coming soon!")}>
-                  Load Game
-                </MenuItem>
-                <MenuItem onClick={() => alert("Exit to Main Menu!")}>
-                  Exit to Main Menu
-                </MenuItem>
-              </MenuList>
-            </Menu>
-          </Box>
-        </Flex>
+        <DealerPanel dealerState={dealerState} />
 
         {/* Right Panel: Market + Storage */}
         <Flex
@@ -346,183 +181,24 @@ export default function MainGame({
           gap={6}
           p={6}
         >
-          {/* Market */}
-          <Box
-            flex="1"
-            bg="brand.surface"
-            p={6}
-            borderRadius="md"
-            overflowY="auto"
-          >
-            <Heading size="md" color="brand.text" textAlign="center" mb={4}>
-              Market - {dealerState.location}
-            </Heading>
+          <MarketPanel
+            dealerState={dealerState}
+            products={products}
+            marketPrices={marketPrices}
+            buyAmounts={buyAmounts}
+            setBuyAmounts={setBuyAmounts}
+            handleBuy={handleBuy}
+            defaultBuyAmount={defaultBuyAmount}
+            setDefaultBuyAmount={setDefaultBuyAmount}
+          />
 
-            {/* Buy Multiplier */}
-            <HStack justify="center" mb={6} spacing={4}>
-              <Button size="sm" onClick={() => setDefaultBuyAmount(1)}>
-                Buy 1
-              </Button>
-              <Button size="sm" onClick={() => setDefaultBuyAmount(10)}>
-                Buy 10
-              </Button>
-              <Button size="sm" onClick={() => setDefaultBuyAmount(100)}>
-                Buy 100
-              </Button>
-            </HStack>
-
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-              {products.map((product) => {
-                const price = marketPrices[product.id];
-                const quantity = buyAmounts[product.id] || 1;
-                const totalPrice = price * quantity;
-                const canAfford = dealerState.stats.gold >= totalPrice;
-
-                return (
-                  <Flex
-                    key={product.id}
-                    direction="column"
-                    p={4}
-                    bg="gray.700"
-                    borderRadius="md"
-                    align="center"
-                  >
-                    <Box fontSize="2xl">{product.icon}</Box>
-                    <Text color="brand.text" mt={2}>
-                      {product.name}
-                    </Text>
-                    <Text fontWeight="bold" color="brand.text" fontSize="sm">
-                      {price} $
-                    </Text>
-
-                    <Input
-                      type="number"
-                      size="sm"
-                      value={quantity}
-                      min={1}
-                      onChange={(e) =>
-                        setBuyAmounts((prev) => ({
-                          ...prev,
-                          [product.id]: Math.max(
-                            1,
-                            parseInt(e.target.value) || 1
-                          ),
-                        }))
-                      }
-                      mt={3}
-                      w="80px"
-                      textAlign="center"
-                    />
-
-                    <Button
-                      size="sm"
-                      colorScheme="teal"
-                      mt={3}
-                      onClick={() => handleBuy(product.id)}
-                      isDisabled={!canAfford}
-                    >
-                      Buy
-                    </Button>
-                  </Flex>
-                );
-              })}
-            </SimpleGrid>
-          </Box>
-
-          {/* Storage */}
-          <Box
-            flex="1"
-            bg="brand.surface"
-            p={6}
-            borderRadius="md"
-            overflowY="auto"
-          >
-            <Heading size="md" color="brand.text" textAlign="center">
-              Your Storage
-            </Heading>
-
-            <Table variant="simple" colorScheme="gray" mt={4}>
-              <Thead>
-                <Tr>
-                  <Th color="brand.text">Product</Th>
-                  <Th color="brand.text">Quantity</Th>
-                  <Th color="brand.text">Sell</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {dealerState.storage.map((item) => {
-                  const product = products.find((p) => p.id === item.productId);
-                  const quantityOwned = item.quantity;
-
-                  return (
-                    <Tr key={item.productId}>
-                      <Td color="brand.text">
-                        <HStack spacing={3}>
-                          <Box fontSize="2xl">{product?.icon}</Box>
-                          <Text>{product?.name}</Text>
-                        </HStack>
-                      </Td>
-
-                      <Td color="brand.text">{quantityOwned}</Td>
-
-                      <Td>
-                        <Flex direction="column" align="center" gap={2}>
-                          <HStack spacing={2}>
-                            <Button
-                              size="xs"
-                              onClick={() =>
-                                handleSellAmount(item.productId, 1)
-                              }
-                              isDisabled={quantityOwned < 1}
-                            >
-                              Sell 1
-                            </Button>
-                            <Button
-                              size="xs"
-                              onClick={() =>
-                                handleSellAmount(item.productId, 10)
-                              }
-                              isDisabled={quantityOwned < 10}
-                            >
-                              Sell 10
-                            </Button>
-                            <Button
-                              size="xs"
-                              onClick={() =>
-                                handleSellAmount(item.productId, 100)
-                              }
-                              isDisabled={quantityOwned < 100}
-                            >
-                              Sell 100
-                            </Button>
-                          </HStack>
-
-                          <Button
-                            size="sm"
-                            colorScheme="red"
-                            variant="outline"
-                            onClick={() => handleSellAll(item.productId)}
-                            isDisabled={quantityOwned <= 0}
-                          >
-                            Sell All
-                          </Button>
-                        </Flex>
-                      </Td>
-                    </Tr>
-                  );
-                })}
-
-                <Tr>
-                  <Td fontWeight="bold" color="brand.text">
-                    Total Value
-                  </Td>
-                  <Td fontWeight="bold" color="brand.text" colSpan={2}>
-                    {totalStorageValue} $
-                  </Td>
-                </Tr>
-              </Tbody>
-            </Table>
-          </Box>
+          <StoragePanel
+            dealerState={dealerState}
+            marketPrices={marketPrices}
+            handleSellAmount={handleSellAmount}
+            handleSellAll={handleSellAll}
+            totalStorageValue={totalStorageValue}
+          />
         </Flex>
       </Flex>
     </Flex>
