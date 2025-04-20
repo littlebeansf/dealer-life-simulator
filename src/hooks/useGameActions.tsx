@@ -108,6 +108,8 @@ export function useGameActions(
       stats: {
         ...dealerState.stats,
         gold: dealerState.stats.gold - totalPrice,
+        totalTrades: dealerState.stats.totalTrades + 1,
+        totalGoldSpent: dealerState.stats.totalGoldSpent + totalPrice,
       },
       storage: newStorage,
     });
@@ -163,6 +165,8 @@ export function useGameActions(
       stats: {
         ...dealerState.stats,
         gold: dealerState.stats.gold + price * sellAmount,
+        totalTrades: dealerState.stats.totalTrades + 1,
+        totalGoldEarned: dealerState.stats.totalGoldEarned + price * sellAmount,
       },
       storage: newStorage,
     });
@@ -211,6 +215,9 @@ export function useGameActions(
       stats: {
         ...dealerState.stats,
         gold: dealerState.stats.gold + price * existingItem.quantity,
+        totalTrades: dealerState.stats.totalTrades + 1,
+        totalGoldEarned:
+          dealerState.stats.totalGoldEarned + price * existingItem.quantity,
       },
       storage: newStorage,
     });

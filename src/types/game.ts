@@ -1,5 +1,3 @@
-// /types/game.ts
-
 import { Gender, Race } from "./character";
 
 export type LocationType =
@@ -32,6 +30,19 @@ export interface StorageItem {
   totalSpent: number; // ✅ New field to track total spent on that product
 }
 
+// Extended Dealer Stats
+export interface DealerStats {
+  strength: number;
+  speed: number;
+  sanity: number;
+  life: number;
+  gold: number;
+  totalTrades: number; // ✅ new
+  totalGoldEarned: number; // ✅ new
+  totalGoldSpent: number; // ✅ new
+  reputation: number;
+}
+
 // Full DealerState during the game
 export interface DealerState {
   id: string;
@@ -43,13 +54,7 @@ export interface DealerState {
     month: number;
     year: number;
   };
-  stats: {
-    strength: number;
-    speed: number;
-    sanity: number;
-    life: number;
-    gold: number;
-  };
+  stats: DealerStats; // ✅ Now using DealerStats interface
   location: LocationType;
   storage: StorageItem[];
   knownContacts: string[];

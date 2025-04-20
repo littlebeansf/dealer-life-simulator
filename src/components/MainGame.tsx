@@ -12,6 +12,7 @@ import { products } from "@/data/products";
 
 import TopBar from "@/components/TopBar";
 import DealerPanel from "@/components/DealerPanel";
+import DealerStatsPanel from "@/components/DealerStatsPanel"; // 🧙 import DealerStatsPanel
 import MarketPanel from "@/components/MarketPanel";
 import StoragePanel from "@/components/StoragePanel";
 
@@ -91,11 +92,19 @@ export default function MainGame({
           overflow="hidden"
         >
           <TabList>
+            <Tab>🧙 Dealer</Tab>
             <Tab>🛒 Marketplace</Tab>
             <Tab>📦 Storage</Tab>
           </TabList>
 
           <TabPanels flex="1" overflow="hidden">
+            <TabPanel p={0} h="full" overflowY="auto">
+              <DealerStatsPanel
+                dealerState={dealerState}
+                totalStorageValue={totalStorageValue}
+              />
+            </TabPanel>
+
             <TabPanel p={0} h="full" overflowY="auto">
               <MarketPanel
                 dealerState={dealerState}
