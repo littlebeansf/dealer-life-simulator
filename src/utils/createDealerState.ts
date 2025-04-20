@@ -25,6 +25,10 @@ export function createDealerState(dealer: Dealer): DealerState {
       sanity: dealer.stats.sanity,
       life: dealer.stats.life,
       gold: 1000, // ✅ Start with 1000 gold
+      reputation: 0,
+      totalGoldEarned: 0,
+      totalGoldSpent: 0,
+      totalTrades: 0,
     },
     location: raceStartingLocations[dealer.race],
     storage: [],
