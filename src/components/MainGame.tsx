@@ -51,10 +51,8 @@ export default function MainGame({
   ];
 
   useEffect(() => {
-    const prices = generateMarketPrices(products);
-    const stock = generateMarketStock(products);
-    setMarketPrices(prices);
-    setMarketStock(stock);
+    setMarketPrices(generateMarketPrices(products));
+    setMarketStock(generateMarketStock(products));
   }, []);
 
   useEffect(() => {
@@ -66,8 +64,7 @@ export default function MainGame({
   }, [defaultBuyAmount]);
 
   const handleNextTurn = () => {
-    const newState = advanceTime(dealerState);
-    setDealerState(newState);
+    setDealerState(advanceTime(dealerState));
     setMarketPrices(generateMarketPrices(products));
     setMarketStock(generateMarketStock(products));
   };
@@ -76,55 +73,45 @@ export default function MainGame({
     const quantity = buyAmounts[productId] || 1;
     const price = marketPrices[productId];
     const stock = marketStock[productId];
-
     const product = products.find((p) => p.id === productId);
-    if (!product || quantity > stock) {
-      alert("Not enough stock available!");
-      return;
-    }
+    if (!product || quantity > stock) return;
 
     const totalPrice = price * quantity;
+    if (dealerState.stats.gold < totalPrice) return;
 
-    if (dealerState.stats.gold < totalPrice) {
-      alert("You don't have enough gold!");
-      return;
-    }
-
-    const newGold = dealerState.stats.gold - totalPrice;
     const existingItem = dealerState.storage.find(
       (item) => item.productId === product.id
     );
-
     let newStorage = [...dealerState.storage];
+
     if (existingItem) {
       newStorage = newStorage.map((item) =>
         item.productId === product.id
           ? {
               ...item,
               quantity: item.quantity + quantity,
-              totalSpent: item.totalSpent + totalPrice, // ✅ Increase total spent
+              totalSpent: item.totalSpent + totalPrice,
             }
           : item
       );
     } else {
       newStorage.push({
         productId: product.id,
-        quantity: quantity,
-        totalSpent: totalPrice, // ✅ New items have initial total spent
+        quantity,
+        totalSpent: totalPrice,
       });
     }
 
-    const newMarketStock = {
-      ...marketStock,
-      [productId]: stock - quantity,
-    };
-
     setDealerState({
       ...dealerState,
-      stats: { ...dealerState.stats, gold: newGold },
+      stats: {
+        ...dealerState.stats,
+        gold: dealerState.stats.gold - totalPrice,
+      },
       storage: newStorage,
     });
-    setMarketStock(newMarketStock);
+
+    setMarketStock((prev) => ({ ...prev, [productId]: stock - quantity }));
   };
 
   const handleSellAmount = (productId: string, amount: number) => {
@@ -135,7 +122,6 @@ export default function MainGame({
     if (!existingItem || existingItem.quantity <= 0) return;
 
     const sellAmount = Math.min(existingItem.quantity, amount);
-
     const newStorage = dealerState.storage
       .map((item) =>
         item.productId === productId
@@ -144,11 +130,12 @@ export default function MainGame({
       )
       .filter((item) => item.quantity > 0);
 
-    const newGold = dealerState.stats.gold + price * sellAmount;
-
     setDealerState({
       ...dealerState,
-      stats: { ...dealerState.stats, gold: newGold },
+      stats: {
+        ...dealerState.stats,
+        gold: dealerState.stats.gold + price * sellAmount,
+      },
       storage: newStorage,
     });
   };
@@ -160,17 +147,16 @@ export default function MainGame({
     );
     if (!existingItem) return;
 
-    const sellAmount = existingItem.quantity;
-
     const newStorage = dealerState.storage.filter(
       (item) => item.productId !== productId
     );
 
-    const newGold = dealerState.stats.gold + price * sellAmount;
-
     setDealerState({
       ...dealerState,
-      stats: { ...dealerState.stats, gold: newGold },
+      stats: {
+        ...dealerState.stats,
+        gold: dealerState.stats.gold + price * existingItem.quantity,
+      },
       storage: newStorage,
     });
   };
@@ -181,18 +167,7 @@ export default function MainGame({
   }, 0);
 
   return (
-    <Flex
-      direction="column"
-      height="100dvh"
-      w="100%"
-      maxW="95vw"
-      minW="1200px"
-      mx="auto"
-      p={2}
-      bg="brand.background"
-      overflow="hidden"
-    >
-      {/* Top Bar */}
+    <Flex direction="column" minH="100dvh" bg="brand.background">
       <TopBar
         onNextTurn={handleNextTurn}
         month={monthNames[dealerState.time.month]}
@@ -200,57 +175,59 @@ export default function MainGame({
       />
 
       <Flex
-        flex="1"
         direction={{ base: "column", md: "row" }}
+        w="full"
+        maxW="1200px"
+        mx="auto"
+        flex="1"
+        minH={{ base: "calc(100dvh - 64px)", md: "auto" }}
         overflow="hidden"
-        gap={4}
       >
-        {/* Dealer Profile Left */}
-        <DealerPanel dealerState={dealerState} />
+        <Box flexShrink={0}>
+          <DealerPanel dealerState={dealerState} />
+        </Box>
 
-        {/* Tabs for Market + Storage */}
-        <Flex flex="1" direction="column" overflow="hidden">
-          <Tabs
-            variant="enclosed"
-            colorScheme="teal"
-            isFitted
-            size="lg"
-            bg="gray.800"
-            p={2}
-            borderRadius="lg"
-          >
-            <TabList>
-              <Tab>🛒 Marketplace</Tab>
-              <Tab>📦 Storage</Tab>
-            </TabList>
+        <Tabs
+          flex="1"
+          w="full"
+          display="flex"
+          flexDirection="column"
+          overflow="hidden"
+          bg="gray.800"
+          borderRadius="lg"
+          p={2}
+        >
+          <TabList>
+            <Tab>🛒 Marketplace</Tab>
+            <Tab>📦 Storage</Tab>
+          </TabList>
 
-            <TabPanels>
-              <TabPanel p={0} overflowY="auto" maxH="calc(100dvh - 200px)">
-                <MarketPanel
-                  dealerState={dealerState}
-                  products={products}
-                  marketPrices={marketPrices}
-                  marketStock={marketStock}
-                  buyAmounts={buyAmounts}
-                  setBuyAmounts={setBuyAmounts}
-                  handleBuy={handleBuy}
-                  defaultBuyAmount={defaultBuyAmount}
-                  setDefaultBuyAmount={setDefaultBuyAmount}
-                />
-              </TabPanel>
+          <TabPanels flex="1" overflow="hidden">
+            <TabPanel p={0} h="100%" overflowY="auto">
+              <MarketPanel
+                dealerState={dealerState}
+                products={products}
+                marketPrices={marketPrices}
+                marketStock={marketStock}
+                buyAmounts={buyAmounts}
+                setBuyAmounts={setBuyAmounts}
+                handleBuy={handleBuy}
+                defaultBuyAmount={defaultBuyAmount}
+                setDefaultBuyAmount={setDefaultBuyAmount}
+              />
+            </TabPanel>
 
-              <TabPanel p={0} overflowY="auto" maxH="calc(100dvh - 200px)">
-                <StoragePanel
-                  dealerState={dealerState}
-                  marketPrices={marketPrices}
-                  handleSellAmount={handleSellAmount}
-                  handleSellAll={handleSellAll}
-                  totalStorageValue={totalStorageValue}
-                />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </Flex>
+            <TabPanel p={0} h="100%" overflowY="auto">
+              <StoragePanel
+                dealerState={dealerState}
+                marketPrices={marketPrices}
+                handleSellAmount={handleSellAmount}
+                handleSellAll={handleSellAll}
+                totalStorageValue={totalStorageValue}
+              />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </Flex>
     </Flex>
   );

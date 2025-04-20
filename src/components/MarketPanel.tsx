@@ -51,30 +51,11 @@ export default function MarketPanel({
         </Button>
       </HStack>
 
-      {/* Horizontal Scroll Wrapper */}
-      <Box
-        overflowX="auto"
-        overflowY="hidden"
-        sx={{
-          "&::-webkit-scrollbar": {
-            height: "6px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "#555",
-            borderRadius: "6px",
-          },
-        }}
-        py={2}
-        px={1}
-      >
-        {/* Inner Grid */}
+      <Box overflowX="hidden" overflowY="auto" py={2} px={1}>
         <Grid
-          templateRows="repeat(3, 1fr)"
-          autoFlow="column"
+          templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }}
           gap={4}
-          w="max-content"
-          minH="500px" // Controls how tall the marketplace is
-          alignItems="start"
+          w="full"
         >
           {products
             .slice()
@@ -93,7 +74,7 @@ export default function MarketPanel({
                   bg="gray.700"
                   borderRadius="md"
                   align="center"
-                  minW="160px"
+                  minW="0"
                   flexShrink={0}
                 >
                   {/* Top Row */}
