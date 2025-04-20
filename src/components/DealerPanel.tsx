@@ -2,8 +2,8 @@ import {
   Box,
   Flex,
   VStack,
-  Text,
   Progress,
+  Text,
   HStack,
   IconButton,
   Menu,
@@ -11,9 +11,9 @@ import {
   MenuList,
   MenuItem,
 } from "@chakra-ui/react";
+import { SettingsIcon } from "@chakra-ui/icons";
 import { DealerState } from "@/types/game";
 import { raceIcons } from "@/utils/raceIcons";
-import { SettingsIcon } from "@chakra-ui/icons";
 import { useAnimatedNumber } from "@/hooks/useAnimatedNumber";
 
 interface DealerPanelProps {
@@ -29,9 +29,10 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
       bg="brand.surface"
       p={4}
       borderRadius="md"
-      minW={{ base: "100%", md: "300px" }}
+      minW={{ base: "100%", md: "300px" }} // ✅ Full width on mobile
       align="center"
       overflow="hidden"
+      flexShrink={0}
     >
       <Box
         boxSize="120px"

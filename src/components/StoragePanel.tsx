@@ -13,7 +13,7 @@ import {
   Heading,
 } from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
-import { products } from "@/data/products"; // ✅ Correct: import products directly.
+import { products } from "@/data/products";
 
 interface StoragePanelProps {
   dealerState: DealerState;
@@ -33,16 +33,16 @@ export default function StoragePanel({
   const findProduct = (id: string) => products.find((p) => p.id === id);
 
   return (
-    <Box flex="1" bg="brand.surface" p={6} borderRadius="md" overflowY="auto">
-      <Heading size="md" color="brand.text" textAlign="center">
+    <Box flex="1" bg="brand.surface" p={4} borderRadius="md" overflowY="auto">
+      <Heading size="md" color="brand.text" textAlign="center" mb={4}>
         Your Storage
       </Heading>
 
-      <Table variant="simple" colorScheme="gray" mt={4}>
+      <Table variant="simple" colorScheme="gray" size="sm">
         <Thead>
           <Tr>
             <Th color="brand.text">Product</Th>
-            <Th color="brand.text">Quantity</Th>
+            <Th color="brand.text">Qty</Th>
             <Th color="brand.text">Sell</Th>
           </Tr>
         </Thead>
@@ -54,47 +54,48 @@ export default function StoragePanel({
             return (
               <Tr key={item.productId}>
                 <Td color="brand.text">
-                  <HStack spacing={3}>
-                    <Box fontSize="2xl">{product?.icon}</Box>
-                    <Text>{product?.name}</Text>
+                  <HStack spacing={2}>
+                    <Box fontSize="lg">{product?.icon}</Box>
+                    <Text fontSize="sm">{product?.name}</Text>
                   </HStack>
                 </Td>
 
                 <Td color="brand.text">{quantityOwned}</Td>
 
                 <Td>
-                  <Flex direction="column" align="center" gap={2}>
-                    <HStack spacing={2}>
+                  <Flex direction="column" align="center" gap={1}>
+                    <HStack spacing={1}>
                       <Button
                         size="xs"
                         onClick={() => handleSellAmount(item.productId, 1)}
                         isDisabled={quantityOwned < 1}
                       >
-                        Sell 1
+                        1
                       </Button>
                       <Button
                         size="xs"
                         onClick={() => handleSellAmount(item.productId, 10)}
                         isDisabled={quantityOwned < 10}
                       >
-                        Sell 10
+                        10
                       </Button>
                       <Button
                         size="xs"
                         onClick={() => handleSellAmount(item.productId, 100)}
                         isDisabled={quantityOwned < 100}
                       >
-                        Sell 100
+                        100
                       </Button>
                     </HStack>
+
                     <Button
-                      size="sm"
+                      size="xs"
                       colorScheme="red"
                       variant="outline"
                       onClick={() => handleSellAll(item.productId)}
                       isDisabled={quantityOwned <= 0}
                     >
-                      Sell All
+                      All
                     </Button>
                   </Flex>
                 </Td>
@@ -104,10 +105,10 @@ export default function StoragePanel({
 
           <Tr>
             <Td fontWeight="bold" color="brand.text">
-              Total Value
+              Total
             </Td>
             <Td fontWeight="bold" color="brand.text" colSpan={2}>
-              {totalStorageValue} $
+              {totalStorageValue}
             </Td>
           </Tr>
         </Tbody>

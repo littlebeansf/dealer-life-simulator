@@ -1,7 +1,19 @@
-import { Flex } from "@chakra-ui/react";
+import {
+  Flex,
+  Box,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+} from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
 import { products } from "@/data/products";
-import { advanceTime, generateMarketPrices } from "@/utils/gameLogic";
+import {
+  advanceTime,
+  generateMarketPrices,
+  generateMarketStock,
+} from "@/utils/gameLogic";
 import { useState, useEffect } from "react";
 
 import TopBar from "@/components/TopBar";
@@ -19,6 +31,7 @@ export default function MainGame({
   setDealerState,
 }: MainGameProps) {
   const [marketPrices, setMarketPrices] = useState<Record<string, number>>({});
+  const [marketStock, setMarketStock] = useState<Record<string, number>>({});
   const [buyAmounts, setBuyAmounts] = useState<Record<string, number>>({});
   const [defaultBuyAmount, setDefaultBuyAmount] = useState<number>(1);
 
@@ -39,7 +52,9 @@ export default function MainGame({
 
   useEffect(() => {
     const prices = generateMarketPrices(products);
+    const stock = generateMarketStock(products);
     setMarketPrices(prices);
+    setMarketStock(stock);
   }, []);
 
   useEffect(() => {
@@ -53,15 +68,20 @@ export default function MainGame({
   const handleNextTurn = () => {
     const newState = advanceTime(dealerState);
     setDealerState(newState);
-    const newPrices = generateMarketPrices(products);
-    setMarketPrices(newPrices);
+    setMarketPrices(generateMarketPrices(products));
+    setMarketStock(generateMarketStock(products));
   };
 
   const handleBuy = (productId: string) => {
     const quantity = buyAmounts[productId] || 1;
     const price = marketPrices[productId];
+    const stock = marketStock[productId];
+
     const product = products.find((p) => p.id === productId);
-    if (!product) return;
+    if (!product || quantity > stock) {
+      alert("Not enough stock available!");
+      return;
+    }
 
     const totalPrice = price * quantity;
 
@@ -86,11 +106,17 @@ export default function MainGame({
       newStorage.push({ productId: product.id, quantity: quantity });
     }
 
+    const newMarketStock = {
+      ...marketStock,
+      [productId]: stock - quantity,
+    };
+
     setDealerState({
       ...dealerState,
       stats: { ...dealerState.stats, gold: newGold },
       storage: newStorage,
     });
+    setMarketStock(newMarketStock);
   };
 
   const handleSellAmount = (productId: string, amount: number) => {
@@ -98,8 +124,6 @@ export default function MainGame({
     const existingItem = dealerState.storage.find(
       (item) => item.productId === productId
     );
-    const product = products.find((p) => p.id === productId);
-
     if (!existingItem || existingItem.quantity <= 0) return;
 
     const sellAmount = Math.min(existingItem.quantity, amount);
@@ -126,8 +150,6 @@ export default function MainGame({
     const existingItem = dealerState.storage.find(
       (item) => item.productId === productId
     );
-    const product = products.find((p) => p.id === productId);
-
     if (!existingItem) return;
 
     const sellAmount = existingItem.quantity;
@@ -154,6 +176,11 @@ export default function MainGame({
     <Flex
       direction="column"
       height="100dvh"
+      w="100%"
+      maxW="95vw"
+      minW="1200px"
+      mx="auto"
+      p={2}
       bg="brand.background"
       overflow="hidden"
     >
@@ -164,41 +191,57 @@ export default function MainGame({
         year={dealerState.time.year}
       />
 
-      {/* Main Content */}
       <Flex
         flex="1"
         direction={{ base: "column", md: "row" }}
         overflow="hidden"
+        gap={4}
       >
-        {/* Left Panel: Dealer Stats */}
+        {/* Dealer Profile Left */}
         <DealerPanel dealerState={dealerState} />
 
-        {/* Right Panel: Market + Storage */}
-        <Flex
-          direction={{ base: "column", md: "row" }}
-          flex="1"
-          overflow="hidden"
-          gap={6}
-          p={6}
-        >
-          <MarketPanel
-            dealerState={dealerState}
-            products={products}
-            marketPrices={marketPrices}
-            buyAmounts={buyAmounts}
-            setBuyAmounts={setBuyAmounts}
-            handleBuy={handleBuy}
-            defaultBuyAmount={defaultBuyAmount}
-            setDefaultBuyAmount={setDefaultBuyAmount}
-          />
+        {/* Tabs for Market + Storage */}
+        <Flex flex="1" direction="column" overflow="hidden">
+          <Tabs
+            variant="enclosed"
+            colorScheme="teal"
+            isFitted
+            size="lg"
+            bg="gray.800"
+            p={2}
+            borderRadius="lg"
+          >
+            <TabList>
+              <Tab>🛒 Marketplace</Tab>
+              <Tab>📦 Storage</Tab>
+            </TabList>
 
-          <StoragePanel
-            dealerState={dealerState}
-            marketPrices={marketPrices}
-            handleSellAmount={handleSellAmount}
-            handleSellAll={handleSellAll}
-            totalStorageValue={totalStorageValue}
-          />
+            <TabPanels>
+              <TabPanel p={0} overflowY="auto" maxH="calc(100dvh - 200px)">
+                <MarketPanel
+                  dealerState={dealerState}
+                  products={products}
+                  marketPrices={marketPrices}
+                  marketStock={marketStock}
+                  buyAmounts={buyAmounts}
+                  setBuyAmounts={setBuyAmounts}
+                  handleBuy={handleBuy}
+                  defaultBuyAmount={defaultBuyAmount}
+                  setDefaultBuyAmount={setDefaultBuyAmount}
+                />
+              </TabPanel>
+
+              <TabPanel p={0} overflowY="auto" maxH="calc(100dvh - 200px)">
+                <StoragePanel
+                  dealerState={dealerState}
+                  marketPrices={marketPrices}
+                  handleSellAmount={handleSellAmount}
+                  handleSellAll={handleSellAll}
+                  totalStorageValue={totalStorageValue}
+                />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         </Flex>
       </Flex>
     </Flex>

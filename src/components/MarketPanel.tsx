@@ -1,7 +1,6 @@
 import {
   Box,
   Flex,
-  VStack,
   Heading,
   HStack,
   Text,
@@ -15,6 +14,7 @@ interface MarketPanelProps {
   dealerState: DealerState;
   products: Product[];
   marketPrices: Record<string, number>;
+  marketStock: Record<string, number>;
   buyAmounts: Record<string, number>;
   setBuyAmounts: React.Dispatch<React.SetStateAction<Record<string, number>>>;
   handleBuy: (productId: string) => void;
@@ -26,6 +26,7 @@ export default function MarketPanel({
   dealerState,
   products,
   marketPrices,
+  marketStock,
   buyAmounts,
   setBuyAmounts,
   handleBuy,
@@ -33,12 +34,12 @@ export default function MarketPanel({
   setDefaultBuyAmount,
 }: MarketPanelProps) {
   return (
-    <Box flex="1" bg="brand.surface" p={6} borderRadius="md" overflowY="auto">
+    <Box flex="1" bg="brand.surface" p={4} borderRadius="md" overflowY="auto">
       <Heading size="md" color="brand.text" textAlign="center" mb={4}>
-        Market - {dealerState.location}
+        Marketplace - {dealerState.location}
       </Heading>
 
-      <HStack justify="center" mb={6} spacing={4}>
+      <HStack justify="center" mb={4} spacing={3}>
         <Button size="sm" onClick={() => setDefaultBuyAmount(1)}>
           Buy 1
         </Button>
@@ -50,12 +51,12 @@ export default function MarketPanel({
         </Button>
       </HStack>
 
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+      <SimpleGrid columns={{ base: 2, sm: 3, md: 4 }} spacing={4}>
         {products.map((product) => {
           const price = marketPrices[product.id];
+          const stock = marketStock[product.id];
           const quantity = buyAmounts[product.id] || 1;
-          const totalPrice = price * quantity;
-          const canAfford = dealerState.stats.gold >= totalPrice;
+          const canAfford = dealerState.stats.gold >= price * quantity;
 
           return (
             <Flex
@@ -65,37 +66,44 @@ export default function MarketPanel({
               bg="gray.700"
               borderRadius="md"
               align="center"
+              minW="140px"
+              minH="190px"
+              justify="space-between"
             >
               <Box fontSize="2xl">{product.icon}</Box>
-              <Text color="brand.text" mt={2}>
+              <Text color="brand.text" mt={2} fontWeight="bold" fontSize="sm">
                 {product.name}
               </Text>
-              <Text fontWeight="bold" color="brand.text" fontSize="sm">
-                {price} $
+              <Text color="gray.300" fontSize="xs">
+                Stock: {stock}
               </Text>
 
               <Input
                 type="number"
-                size="sm"
+                size="xs"
                 value={quantity}
                 min={1}
+                max={stock}
                 onChange={(e) =>
                   setBuyAmounts((prev) => ({
                     ...prev,
-                    [product.id]: Math.max(1, parseInt(e.target.value) || 1),
+                    [product.id]: Math.max(
+                      1,
+                      Math.min(stock, parseInt(e.target.value) || 1)
+                    ),
                   }))
                 }
-                mt={3}
-                w="80px"
+                mt={2}
+                w="60px"
                 textAlign="center"
               />
 
               <Button
-                size="sm"
+                size="xs"
                 colorScheme="teal"
-                mt={3}
+                mt={2}
                 onClick={() => handleBuy(product.id)}
-                isDisabled={!canAfford}
+                isDisabled={!canAfford || stock <= 0}
               >
                 Buy
               </Button>
