@@ -13,7 +13,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 import { Dealer, Race, Gender, races, genders } from "../types/character";
-import { createDealerState } from "../utils/createDealerState";
 import { generateRandomDealerData } from "../utils/helpers";
 
 const MotionBox = motion(Box);

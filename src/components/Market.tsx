@@ -1,13 +1,8 @@
-import {
-  Box,
-  Button,
-  Flex,
-  HStack,
-  Text,
-  VStack,
-  Tooltip,
-} from "@chakra-ui/react";
-import { DealerState, Product } from "../types/game";
+// src/components/Market.tsx
+
+import { Button, Flex, HStack, Text, VStack, Tooltip } from "@chakra-ui/react";
+import { DealerState, Product } from "@/types/game";
+import { products } from "@/data/products"; // ✅ Use real products list
 import { useState } from "react";
 
 interface MarketProps {
@@ -16,24 +11,6 @@ interface MarketProps {
 }
 
 export default function Market({ dealerState, setDealerState }: MarketProps) {
-  // Temporary Products (later generated per location)
-  const products: Product[] = [
-    { id: "magic_dust", name: "Magic Dust", basePrice: 50, rarity: "common" },
-    {
-      id: "elven_leaf",
-      name: "Elven Leaf",
-      basePrice: 120,
-      rarity: "uncommon",
-    },
-    { id: "orc_tusk", name: "Orc Tusk", basePrice: 200, rarity: "rare" },
-    {
-      id: "demon_essence",
-      name: "Demon Essence",
-      basePrice: 500,
-      rarity: "legendary",
-    },
-  ];
-
   const handleBuy = (product: Product) => {
     if (dealerState.stats.gold < product.basePrice) {
       alert("You don't have enough gold!");
@@ -78,7 +55,9 @@ export default function Market({ dealerState, setDealerState }: MarketProps) {
           borderRadius="md"
         >
           <HStack>
-            <Text fontSize="lg">{product.name}</Text>
+            <Text fontSize="lg">
+              {product.icon} {product.name}
+            </Text>
             <Tooltip label={product.rarity} bg="purple.600">
               <Text fontSize="sm" color="gray.300">
                 ({product.rarity})

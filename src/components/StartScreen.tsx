@@ -16,7 +16,9 @@ function StartScreen({ onStart }: StartScreenProps) {
       transition={{ duration: 1 }}
       w="100vw"
       h="100vh"
-      bgImage="url('/assets/start-screen.png')"
+      backgroundImage={`url(${
+        import.meta.env.BASE_URL
+      }assets/start-screen.png)`}
       bgPosition="center"
       bgSize="cover"
       bgRepeat="no-repeat"
