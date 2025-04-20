@@ -13,17 +13,21 @@ export default function DealerStatsPanel({
   totalStorageValue,
 }: DealerStatsPanelProps) {
   const gold = dealerState.stats.gold;
-  const totalTrades = dealerState.stats.totalTrades || 0; // Assuming you track it; else fake it for now
-  const reputation =
-    dealerState.stats.reputation || Math.floor(Math.random() * 100);
+  const totalTrades = dealerState.stats.totalTrades || 0; // If missing, default to 0
+  const reputation = dealerState.stats.reputation ?? 0;
 
-  const monthsSurvived = dealerState.time.year * 12 + dealerState.time.month;
+  // 🛠 Correct months survived calculation
+  const startYear = 2025;
+  const startMonth = 3; // April (0-indexed)
+  const monthsSurvived =
+    (dealerState.time.year - startYear) * 12 +
+    (dealerState.time.month - startMonth) +
+    1; // +1 because April start counts as month 1
 
   const favoriteProductId =
     dealerState.storage.sort((a, b) => b.quantity - a.quantity)[0]?.productId ||
     "None";
 
-  // Temporary titles by gold
   const getRank = (gold: number) => {
     if (gold > 100000) return "Legendary Merchant";
     if (gold > 50000) return "Elite Merchant";

@@ -53,18 +53,47 @@ export function useGameActions(
 
   const handleNextTurn = () => {
     const nextDealerState = advanceTime(dealerState);
+
+    // Birthday Calculation
+    const startingAge = 18;
+    const startYear = 2025;
+    const startMonth = 3; // April = 3
+
+    const oldMonthsPassed =
+      (dealerState.time.year - startYear) * 12 +
+      (dealerState.time.month - startMonth);
+    const newMonthsPassed =
+      (nextDealerState.time.year - startYear) * 12 +
+      (nextDealerState.time.month - startMonth);
+
+    const oldAge = startingAge + Math.floor(oldMonthsPassed / 12);
+    const newAge = startingAge + Math.floor(newMonthsPassed / 12);
+
     setDealerState(nextDealerState);
 
-    toast({
-      title: "Month Advanced",
-      description: `Welcome to ${monthNames[nextDealerState.time.month]} ${
-        nextDealerState.time.year
-      }`,
-      status: "info",
-      duration: 3000,
-      isClosable: true,
-      position: "top-left",
-    });
+    if (newAge > oldAge) {
+      // 🎉 BIRTHDAY TOAST
+      toast({
+        title: "🎉 Happy Birthday!",
+        description: `You are now ${newAge} years old! 🧙‍♂️`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-left",
+      });
+    } else {
+      // 📅 NORMAL MONTH ADVANCE TOAST
+      toast({
+        title: "Month Advanced",
+        description: `Welcome to ${monthNames[nextDealerState.time.month]} ${
+          nextDealerState.time.year
+        }`,
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+        position: "top-left",
+      });
+    }
 
     setMarketPrices(generateMarketPrices(products));
     setMarketStock(generateMarketStock(products));
