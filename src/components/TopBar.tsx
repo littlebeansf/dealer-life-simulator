@@ -1,4 +1,4 @@
-import { Flex, Heading, IconButton, Text, Tooltip } from "@chakra-ui/react";
+import { Flex, IconButton, Text, Tooltip } from "@chakra-ui/react";
 
 interface TopBarProps {
   onNextTurn: () => void;
@@ -13,26 +13,36 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
       p={4}
       align="center"
       justify="center"
-      width="100%"
       direction="column"
+      width="100%"
+      borderRadius="md"
     >
-      <Heading size="lg" color="white">
+      {/* Top: Game Title */}
+      <Text fontSize="2xl" fontWeight="bold" color="white" mb={2}>
         Dealer Life Simulator
-      </Heading>
+      </Text>
 
-      <Flex mt={4} align="center" gap={4}>
-        <Tooltip label="Next Month" hasArrow>
+      {/* Bottom: Next Month button + Month Display */}
+      <Flex align="center" gap={4}>
+        <Tooltip label="Next Month" hasArrow placement="top" bg="gray.600">
           <IconButton
             aria-label="Next Month"
-            icon={<span style={{ fontSize: "36px" }}>📅</span>}
-            size="xl"
-            isRound
+            icon={<span style={{ fontSize: "24px" }}>📅</span>}
+            size="lg"
             variant="solid"
             colorScheme="gray"
+            p={6}
             onClick={onNextTurn}
           />
         </Tooltip>
-        <Text fontSize="xl" fontWeight="bold" color="white">
+
+        <Text
+          fontSize="xl"
+          fontWeight="bold"
+          color="white"
+          minW="150px"
+          textAlign="center"
+        >
           {month} {year}
         </Text>
       </Flex>

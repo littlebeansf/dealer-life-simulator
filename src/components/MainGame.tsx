@@ -99,11 +99,19 @@ export default function MainGame({
     if (existingItem) {
       newStorage = newStorage.map((item) =>
         item.productId === product.id
-          ? { ...item, quantity: item.quantity + quantity }
+          ? {
+              ...item,
+              quantity: item.quantity + quantity,
+              totalSpent: item.totalSpent + totalPrice, // ✅ Increase total spent
+            }
           : item
       );
     } else {
-      newStorage.push({ productId: product.id, quantity: quantity });
+      newStorage.push({
+        productId: product.id,
+        quantity: quantity,
+        totalSpent: totalPrice, // ✅ New items have initial total spent
+      });
     }
 
     const newMarketStock = {

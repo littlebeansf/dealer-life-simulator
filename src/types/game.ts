@@ -26,10 +26,10 @@ export interface Product {
   icon: string; // ✅ Added officially
 }
 
-// Item inside the player's Storage
 export interface StorageItem {
   productId: string;
   quantity: number;
+  totalSpent: number; // ✅ New field to track total spent on that product
 }
 
 // Full DealerState during the game

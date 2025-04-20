@@ -52,64 +52,79 @@ export default function MarketPanel({
       </HStack>
 
       <SimpleGrid columns={{ base: 2, sm: 3, md: 4 }} spacing={4}>
-        {products.map((product) => {
-          const price = marketPrices[product.id];
-          const stock = marketStock[product.id];
-          const quantity = buyAmounts[product.id] || 1;
-          const canAfford = dealerState.stats.gold >= price * quantity;
+        {products
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name)) // ✅ Sorted alphabetically
+          .map((product) => {
+            const price = marketPrices[product.id];
+            const stock = marketStock[product.id];
+            const quantity = buyAmounts[product.id] || 1;
+            const canAfford = dealerState.stats.gold >= price * quantity;
 
-          return (
-            <Flex
-              key={product.id}
-              direction="column"
-              p={4}
-              bg="gray.700"
-              borderRadius="md"
-              align="center"
-              minW="140px"
-              minH="190px"
-              justify="space-between"
-            >
-              <Box fontSize="2xl">{product.icon}</Box>
-              <Text color="brand.text" mt={2} fontWeight="bold" fontSize="sm">
-                {product.name}
-              </Text>
-              <Text color="gray.300" fontSize="xs">
-                Stock: {stock}
-              </Text>
-
-              <Input
-                type="number"
-                size="xs"
-                value={quantity}
-                min={1}
-                max={stock}
-                onChange={(e) =>
-                  setBuyAmounts((prev) => ({
-                    ...prev,
-                    [product.id]: Math.max(
-                      1,
-                      Math.min(stock, parseInt(e.target.value) || 1)
-                    ),
-                  }))
-                }
-                mt={2}
-                w="60px"
-                textAlign="center"
-              />
-
-              <Button
-                size="xs"
-                colorScheme="teal"
-                mt={2}
-                onClick={() => handleBuy(product.id)}
-                isDisabled={!canAfford || stock <= 0}
+            return (
+              <Flex
+                key={product.id}
+                direction="column"
+                p={4}
+                bg="gray.700"
+                borderRadius="md"
+                align="center"
+                minW="140px"
+                minH="200px"
+                justify="space-between"
               >
-                Buy
-              </Button>
-            </Flex>
-          );
-        })}
+                <Box fontSize="2xl">{product.icon}</Box>
+
+                <Text
+                  color="brand.text"
+                  mt={2}
+                  fontWeight="bold"
+                  fontSize="sm"
+                  textAlign="center"
+                >
+                  {product.name}
+                </Text>
+
+                <Text color="gray.300" fontSize="sm" textAlign="center">
+                  Price: ${price}
+                </Text>
+
+                <Text color="gray.400" fontSize="xs" textAlign="center" mt={1}>
+                  Stock: {stock}
+                </Text>
+
+                <Input
+                  type="number"
+                  size="xs"
+                  value={quantity}
+                  min={1}
+                  max={stock}
+                  onChange={(e) =>
+                    setBuyAmounts((prev) => ({
+                      ...prev,
+                      [product.id]: Math.max(
+                        1,
+                        Math.min(stock, parseInt(e.target.value) || 1)
+                      ),
+                    }))
+                  }
+                  mt={2}
+                  w="60px"
+                  textAlign="center"
+                />
+
+                <Button
+                  size="xs"
+                  colorScheme="teal"
+                  mt={2}
+                  onClick={() => handleBuy(product.id)}
+                  isDisabled={!canAfford || stock <= 0}
+                >
+                  Buy
+                </Button>
+              </Flex>
+            );
+          })}
       </SimpleGrid>
     </Box>
   );
