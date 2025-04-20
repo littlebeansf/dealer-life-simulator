@@ -176,10 +176,10 @@ export default function MainGame({
 
       <Flex
         direction={{ base: "column", md: "row" }}
-        w="full"
-        maxW="1200px"
+        minW={{ base: "100vw", md: "80vw" }}
         mx="auto"
         flex="1"
+        w="full"
         minH={{ base: "calc(100dvh - 64px)", md: "auto" }}
         overflow="hidden"
       >
@@ -189,13 +189,17 @@ export default function MainGame({
 
         <Tabs
           flex="1"
-          w="full"
+          isFitted
+          variant="enclosed"
+          colorScheme="teal"
+          size="lg"
           display="flex"
           flexDirection="column"
-          overflow="hidden"
+          w="full"
           bg="gray.800"
           borderRadius="lg"
           p={2}
+          overflow="hidden"
         >
           <TabList>
             <Tab>🛒 Marketplace</Tab>
@@ -203,7 +207,7 @@ export default function MainGame({
           </TabList>
 
           <TabPanels flex="1" overflow="hidden">
-            <TabPanel p={0} h="100%" overflowY="auto">
+            <TabPanel p={0} h="full" overflowY="auto">
               <MarketPanel
                 dealerState={dealerState}
                 products={products}
@@ -217,7 +221,7 @@ export default function MainGame({
               />
             </TabPanel>
 
-            <TabPanel p={0} h="100%" overflowY="auto">
+            <TabPanel p={0} h="full" overflowY="auto">
               <StoragePanel
                 dealerState={dealerState}
                 marketPrices={marketPrices}

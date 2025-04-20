@@ -38,7 +38,8 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
     "December",
   ];
 
-  const currentMonth = monthNames[dealerState.time.month];
+  const displayMonthName = monthNames[dealerState.time.month]; // for other places
+  const monthNumber = (dealerState.time.month % 12) + 1; // for profile line
 
   return (
     <Flex
@@ -74,9 +75,16 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
         </Box>
 
         <VStack spacing={1} align="end">
-          <Text fontSize="lg" fontWeight="bold" color="brand.text">
+          <Text
+            fontSize="lg"
+            fontWeight="bold"
+            color="brand.text"
+            minW="80px" // 👈 Reserve minimum width
+            textAlign="right" // 👈 Keep right aligned if needed
+          >
             💰 {animatedGold} $
           </Text>
+
           <Menu>
             <MenuButton
               as={IconButton}
@@ -111,7 +119,7 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
         {dealerState.name}
       </Text>
       <Text fontSize="sm" color="brand.text" textAlign="center">
-        Age {dealerState.time.age} · {dealerState.gender} · {currentMonth}
+        Age {dealerState.time.age} ({monthNumber}) - {dealerState.gender}
       </Text>
 
       {/* Life and Sanity Bars */}

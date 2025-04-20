@@ -22,7 +22,7 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
         Dealer Life Simulator
       </Text>
 
-      {/* Bottom: Next Month button + Month Display */}
+      {/* Bottom: Next Month button + Month/Year Display */}
       <Flex align="center" gap={4}>
         <Tooltip label="Next Month" hasArrow placement="top" bg="gray.600">
           <IconButton
@@ -36,15 +36,20 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
           />
         </Tooltip>
 
-        <Text
-          fontSize="xl"
-          fontWeight="bold"
-          color="white"
+        <Flex
+          direction="column"
+          align="center"
+          justify="center"
           minW="150px"
-          textAlign="center"
+          px={2}
         >
-          {month} {year}
-        </Text>
+          <Text fontSize="lg" fontWeight="bold" color="white" noOfLines={1}>
+            {month}
+          </Text>
+          <Text fontSize="sm" color="gray.300">
+            {year}
+          </Text>
+        </Flex>
       </Flex>
     </Flex>
   );

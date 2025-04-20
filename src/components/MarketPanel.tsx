@@ -7,6 +7,8 @@ import {
   Button,
   Input,
   Grid,
+  useBreakpointValue,
+  VStack,
 } from "@chakra-ui/react";
 import { DealerState, Product } from "@/types/game";
 
@@ -33,6 +35,8 @@ export default function MarketPanel({
   defaultBuyAmount,
   setDefaultBuyAmount,
 }: MarketPanelProps) {
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   return (
     <Box flex="1" bg="brand.surface" p={4} borderRadius="md" overflow="hidden">
       <Heading size="md" color="brand.text" textAlign="center" mb={4}>
@@ -68,63 +72,46 @@ export default function MarketPanel({
 
               return (
                 <Flex
-                  key={product.id}
                   direction="column"
+                  align="center"
+                  justify="space-between"
                   p={3}
                   bg="gray.700"
                   borderRadius="md"
-                  align="center"
                   minW="0"
                   flexShrink={0}
+                  h="full"
                 >
-                  {/* Top Row */}
-                  <HStack w="100%" spacing={3} align="center">
-                    <Flex
-                      borderRadius="full"
-                      bg="gray.600"
-                      boxSize="48px"
-                      align="center"
-                      justify="center"
-                      fontSize="2xl"
-                    >
-                      {product.icon}
-                    </Flex>
+                  <Flex
+                    borderRadius="full"
+                    bg="gray.600"
+                    boxSize="48px"
+                    align="center"
+                    justify="center"
+                    fontSize="2xl"
+                  >
+                    {product.icon}
+                  </Flex>
 
-                    <Flex direction="column" flex="1">
-                      <Text
-                        fontSize="md"
-                        fontWeight="bold"
-                        color="white"
-                        lineHeight="1"
-                      >
-                        ${price}
-                      </Text>
-                      <Text
-                        fontSize="xs"
-                        color="gray.300"
-                        lineHeight="1"
-                        mt={1}
-                      >
-                        Stock: {stock}
-                      </Text>
-                    </Flex>
-                  </HStack>
-
-                  {/* Product Name */}
                   <Text
                     color="brand.text"
                     mt={3}
-                    fontSize="md"
-                    fontWeight="semibold"
-                    letterSpacing="wide"
+                    fontSize="lg"
+                    fontWeight="extrabold"
                     textAlign="center"
-                    fontFamily="heading"
                     noOfLines={1}
                   >
                     {product.name}
                   </Text>
 
-                  {/* Buy Controls */}
+                  <Text fontSize="md" fontWeight="bold" color="white" mt={1}>
+                    ${price}
+                  </Text>
+
+                  <Text fontSize="xs" color="gray.300" lineHeight="1">
+                    Stock: {stock}
+                  </Text>
+
                   <HStack mt={3} spacing={2}>
                     <Input
                       type="number"
@@ -144,7 +131,6 @@ export default function MarketPanel({
                       w="50px"
                       textAlign="center"
                     />
-
                     <Button
                       size="xs"
                       colorScheme="teal"
