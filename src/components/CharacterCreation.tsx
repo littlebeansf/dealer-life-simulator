@@ -42,6 +42,10 @@ export default function CharacterCreation({
         sanity: 100,
         life: 100,
         gold: 0,
+        totalTrades: 0,
+        totalGoldEarned: 0,
+        totalGoldSpent: 0,
+        reputation: 0,
       },
     };
     onConfirm(newDealer);

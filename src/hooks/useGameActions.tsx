@@ -54,7 +54,6 @@ export function useGameActions(
   const handleNextTurn = () => {
     const nextDealerState = advanceTime(dealerState);
 
-    // Birthday Calculation
     const startingAge = 18;
     const startYear = 2025;
     const startMonth = 3; // April = 3
@@ -69,10 +68,17 @@ export function useGameActions(
     const oldAge = startingAge + Math.floor(oldMonthsPassed / 12);
     const newAge = startingAge + Math.floor(newMonthsPassed / 12);
 
-    setDealerState(nextDealerState);
+    let newJournal = [...dealerState.journal];
+    const currentDate = `${monthNames[nextDealerState.time.month]} ${
+      nextDealerState.time.year
+    }`;
 
     if (newAge > oldAge) {
-      // 🎉 BIRTHDAY TOAST
+      newJournal.push({
+        date: currentDate,
+        text: `${dealerState.name} celebrated their ${newAge}th birthday, and the streets cheered.`,
+      });
+
       toast({
         title: "🎉 Happy Birthday!",
         description: `You are now ${newAge} years old! 🧙‍♂️`,
@@ -82,18 +88,25 @@ export function useGameActions(
         position: "top-left",
       });
     } else {
-      // 📅 NORMAL MONTH ADVANCE TOAST
+      newJournal.push({
+        date: currentDate,
+        text: `Another month passed. ${dealerState.name} is still hustling...`,
+      });
+
       toast({
         title: "Month Advanced",
-        description: `Welcome to ${monthNames[nextDealerState.time.month]} ${
-          nextDealerState.time.year
-        }`,
+        description: `Welcome to ${currentDate}`,
         status: "info",
         duration: 3000,
         isClosable: true,
         position: "top-left",
       });
     }
+
+    setDealerState({
+      ...nextDealerState,
+      journal: newJournal,
+    });
 
     setMarketPrices(generateMarketPrices(products));
     setMarketStock(generateMarketStock(products));
@@ -132,6 +145,14 @@ export function useGameActions(
       });
     }
 
+    const newJournal = [
+      ...dealerState.journal,
+      {
+        date: `${monthNames[dealerState.time.month]} ${dealerState.time.year}`,
+        text: `${dealerState.name} bought ${quantity}x ${product.name} for ${totalPrice} gold.`,
+      },
+    ];
+
     setDealerState({
       ...dealerState,
       stats: {
@@ -141,6 +162,7 @@ export function useGameActions(
         totalGoldSpent: dealerState.stats.totalGoldSpent + totalPrice,
       },
       storage: newStorage,
+      journal: newJournal,
     });
 
     setMarketStock((prev) => ({ ...prev, [productId]: stock - quantity }));
@@ -189,6 +211,16 @@ export function useGameActions(
       )
       .filter((item) => item.quantity > 0);
 
+    const newJournal = [
+      ...dealerState.journal,
+      {
+        date: `${monthNames[dealerState.time.month]} ${dealerState.time.year}`,
+        text: `${dealerState.name} sold ${sellAmount}x ${product.name} for ${
+          price * sellAmount
+        } gold.`,
+      },
+    ];
+
     setDealerState({
       ...dealerState,
       stats: {
@@ -198,6 +230,7 @@ export function useGameActions(
         totalGoldEarned: dealerState.stats.totalGoldEarned + price * sellAmount,
       },
       storage: newStorage,
+      journal: newJournal,
     });
 
     toast({
@@ -239,6 +272,16 @@ export function useGameActions(
       (item) => item.productId !== productId
     );
 
+    const newJournal = [
+      ...dealerState.journal,
+      {
+        date: `${monthNames[dealerState.time.month]} ${dealerState.time.year}`,
+        text: `${dealerState.name} sold ALL of their ${
+          product.name
+        } stash for ${price * existingItem.quantity} gold.`,
+      },
+    ];
+
     setDealerState({
       ...dealerState,
       stats: {
@@ -249,6 +292,7 @@ export function useGameActions(
           dealerState.stats.totalGoldEarned + price * existingItem.quantity,
       },
       storage: newStorage,
+      journal: newJournal,
     });
 
     toast({

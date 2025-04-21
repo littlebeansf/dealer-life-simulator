@@ -18,26 +18,33 @@ export type Race =
 // Gender types available in the game
 export type Gender = "Male" | "Female" | "Other";
 
-// Genders list for character creation screen
-export const genders = [
-  { label: "Male", icon: "♂️" },
-  { label: "Female", icon: "♀️" },
-  { label: "Other", icon: "⚧️" },
-];
+// Extended Dealer Stats (for full simulation)
+export interface DealerStats {
+  strength: number;
+  speed: number;
+  sanity: number;
+  life: number;
+  gold: number;
+  totalTrades: number;
+  totalGoldEarned: number;
+  totalGoldSpent: number;
+  reputation: number;
+}
 
 // Dealer structure (used for creating a new dealer character)
 export interface Dealer {
   name: string;
   race: Race;
   gender: Gender;
-  stats: {
-    strength: number;
-    speed: number;
-    sanity: number;
-    life: number;
-    gold: number;
-  };
+  stats: DealerStats; // <<<<<< ✅ Now using full stats!
 }
+
+// Genders list for character creation screen
+export const genders = [
+  { label: "Male", icon: "♂️" },
+  { label: "Female", icon: "♀️" },
+  { label: "Other", icon: "⚧️" },
+];
 
 // Races list for character creation screen
 export const races = [

@@ -16,6 +16,7 @@ import DealerStatsPanel from "@/components/DealerStatsPanel";
 import MarketPanel from "@/components/MarketPanel";
 import StoragePanel from "@/components/StoragePanel";
 import PortalRevealOverlay from "@/components/PortalRevealOverlay";
+import DealerJournalPanel from "@/components/DealerJournalPanel"; // ✅ NEW clean import
 
 import { useGameActions } from "@/hooks/useGameActions";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -25,7 +26,7 @@ interface MainGameProps {
   setDealerState: React.Dispatch<React.SetStateAction<DealerState | null>>;
 }
 
-type AppScreen = "dealer" | "marketplace" | "storage" | null;
+type AppScreen = "dealer" | "marketplace" | "storage" | "dealerScrolls" | null;
 
 export default function MainGame({
   dealerState,
@@ -102,7 +103,7 @@ export default function MainGame({
           borderRadius="2xl"
           border="6px solid black"
           p={2}
-          overflow="hidden" // << DealerPhone container overflow hidden
+          overflow="hidden"
           minH="600px"
           maxH="680px"
           flex="1"
@@ -114,7 +115,7 @@ export default function MainGame({
             bg="black"
             borderRadius="lg"
             flex="1"
-            overflow="hidden" // << inner screen overflow hidden
+            overflow="hidden"
           >
             {/* Phone Header */}
             <Box
@@ -147,6 +148,11 @@ export default function MainGame({
                     label="Storage"
                     emoji="📦"
                     onClick={() => setActiveApp("storage")}
+                  />
+                  <AppIcon
+                    label="Scrolls"
+                    emoji="📜"
+                    onClick={() => setActiveApp("dealerScrolls")}
                   />
                 </SimpleGrid>
               ) : (
@@ -191,6 +197,9 @@ export default function MainGame({
                         handleSellAll={handleSellAll}
                         totalStorageValue={totalStorageValue}
                       />
+                    )}
+                    {activeApp === "dealerScrolls" && (
+                      <DealerJournalPanel dealerState={dealerState} />
                     )}
                   </Box>
                 </Box>

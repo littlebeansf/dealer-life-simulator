@@ -1,5 +1,39 @@
 import { Gender, Race } from "./character";
 
+// Type for Dealer Scrolls entries
+export interface JournalEntry {
+  date: string; // e.g., "April 2025"
+  text: string; // e.g., "X bought 10x Magical Shrooms at 50 gold each."
+}
+
+// Product / Drug available in the game
+export interface Product {
+  id: string;
+  name: string;
+  basePrice: number;
+  rarity: "common" | "uncommon" | "rare" | "legendary";
+  icon: string;
+}
+
+export interface StorageItem {
+  productId: string;
+  quantity: number;
+  totalSpent: number;
+}
+
+// Extended Dealer Stats
+export interface DealerStats {
+  strength: number;
+  speed: number;
+  sanity: number;
+  life: number;
+  gold: number;
+  totalTrades: number;
+  totalGoldEarned: number;
+  totalGoldSpent: number;
+  reputation: number;
+}
+
 export type LocationType =
   | "Human City"
   | "Elven Forest"
@@ -15,34 +49,6 @@ export type LocationType =
   | "Haunted Marsh"
   | "Dark Forest";
 
-// Product / Drug available in the game
-export interface Product {
-  id: string;
-  name: string;
-  basePrice: number;
-  rarity: "common" | "uncommon" | "rare" | "legendary";
-  icon: string; // ✅ Added officially
-}
-
-export interface StorageItem {
-  productId: string;
-  quantity: number;
-  totalSpent: number; // ✅ New field to track total spent on that product
-}
-
-// Extended Dealer Stats
-export interface DealerStats {
-  strength: number;
-  speed: number;
-  sanity: number;
-  life: number;
-  gold: number;
-  totalTrades: number; // ✅ new
-  totalGoldEarned: number; // ✅ new
-  totalGoldSpent: number; // ✅ new
-  reputation: number;
-}
-
 // Full DealerState during the game
 export interface DealerState {
   id: string;
@@ -54,8 +60,9 @@ export interface DealerState {
     month: number;
     year: number;
   };
-  stats: DealerStats; // ✅ Now using DealerStats interface
+  stats: DealerStats;
   location: LocationType;
   storage: StorageItem[];
   knownContacts: string[];
+  journal: JournalEntry[]; // <<<<<< ✅ Added this to track Dealer Scrolls
 }

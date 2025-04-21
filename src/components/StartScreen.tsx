@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Box, VStack } from "@chakra-ui/react";
+import { Button, Box, VStack, Text } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface StartScreenProps {
@@ -7,6 +7,7 @@ interface StartScreenProps {
 }
 
 const MotionBox = motion(Box);
+const MotionText = motion(Text);
 
 export default function StartScreen({ onStart }: StartScreenProps) {
   const [portalOpen, setPortalOpen] = useState(false);
@@ -15,7 +16,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
     setPortalOpen(true);
     setTimeout(() => {
       onStart();
-    }, 2000); // After the portal animation
+    }, 2000); // After portal animation
   };
 
   return (
@@ -33,14 +34,58 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       bgRepeat="no-repeat"
       position="relative"
       overflow="hidden"
+      fontFamily="'Cinzel Decorative', serif"
     >
-      <VStack justify="center" align="center" h="100%">
-        <Button colorScheme="teal" size="lg" onClick={handleStartClick}>
-          Start Dealing
+      {/* Floating Giant Title */}
+      <MotionText
+        initial={{ opacity: 0, y: -80 }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          textShadow: "0px 0px 20px rgba(255, 255, 255, 0.8)",
+        }}
+        transition={{ duration: 1.8, ease: "easeOut" }}
+        fontSize={{ base: "5xl", md: "8xl" }}
+        fontWeight="bold"
+        color="white"
+        textAlign="center"
+        mt={16}
+        letterSpacing="widest"
+        textShadow="0px 0px 15px rgba(0, 255, 255, 0.6)"
+        zIndex="10"
+      >
+        Dealer Life Simulator
+      </MotionText>
+
+      {/* Button */}
+      <VStack justify="center" align="center" h="full" spacing={8}>
+        <Button
+          onClick={handleStartClick}
+          mt={32}
+          size="lg"
+          fontSize="2xl"
+          px={12}
+          py={6}
+          bg="blackAlpha.700"
+          _hover={{
+            bg: "blackAlpha.900",
+            textShadow: "0 0 20px cyan",
+            boxShadow: "0 0 20px rgba(0, 255, 255, 0.7)",
+          }}
+          color="white"
+          border="2px solid white"
+          borderRadius="full"
+          transition="all 0.4s ease"
+          textShadow="0 0 10px rgba(0, 255, 255, 0.8)"
+          letterSpacing="wider"
+          fontFamily="'Cinzel Decorative', serif"
+          zIndex="10"
+        >
+          Begin the Pact
         </Button>
       </VStack>
 
-      {/* Black screen with magical circular opening */}
+      {/* Magical Portal Animation */}
       <AnimatePresence>
         {portalOpen && (
           <MotionBox

@@ -9,6 +9,23 @@ export function createDealerState(dealer: Dealer): DealerState {
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
+  const formattedDate = `${
+    [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ][currentMonth]
+  } ${currentYear}`;
+
   return {
     id: crypto.randomUUID(),
     name: dealer.name,
@@ -24,7 +41,7 @@ export function createDealerState(dealer: Dealer): DealerState {
       speed: dealer.stats.speed,
       sanity: dealer.stats.sanity,
       life: dealer.stats.life,
-      gold: 1000, // ✅ Start with 1000 gold
+      gold: 1000,
       reputation: 0,
       totalGoldEarned: 0,
       totalGoldSpent: 0,
@@ -33,5 +50,11 @@ export function createDealerState(dealer: Dealer): DealerState {
     location: raceStartingLocations[dealer.race],
     storage: [],
     knownContacts: [],
+    journal: [
+      {
+        date: formattedDate,
+        text: `🌟 ${dealer.name} turned 18 and officially stepped into the street trade. Let the shady saga begin...`,
+      },
+    ],
   };
 }
