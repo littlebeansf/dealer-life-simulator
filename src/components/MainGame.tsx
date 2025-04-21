@@ -98,47 +98,41 @@ export default function MainGame({
         {/* Right: Dealer Phone */}
         <Flex
           direction="column"
-          flexGrow={1}
-          bg="gray.800" // Outer frame
+          bg="gray.800"
           borderRadius="2xl"
           border="6px solid black"
-          p={2} // << tighter outer padding
-          boxShadow="0 0 20px rgba(0, 0, 0, 0.7)"
-          overflow="hidden"
+          p={2}
+          overflow="hidden" // << DealerPhone container overflow hidden
           minH="600px"
-          maxH="calc(100dvh - 100px)"
-          justify="flex-start"
+          maxH="680px"
+          flex="1"
+          flexShrink={0}
         >
-          {/* Phone "Screen" */}
-          <Box
-            bg="black" // Full screen background
+          {/* Phone Screen */}
+          <Flex
+            direction="column"
+            bg="black"
             borderRadius="lg"
             flex="1"
-            overflow="hidden"
-            display="flex"
-            flexDirection="column"
+            overflow="hidden" // << inner screen overflow hidden
           >
             {/* Phone Header */}
-            <Heading
-              size="md"
-              textAlign="center"
-              p={4}
-              color="gray.300"
-              fontFamily="heading"
+            <Box
               bg="brand.surface"
+              borderTopRadius="lg"
+              p={4}
+              borderBottom="1px solid #333"
+              textAlign="center"
             >
-              📱 Dealer Phone
-            </Heading>
+              <Heading size="md" color="gray.300" fontFamily="heading">
+                📱 Dealer Phone
+              </Heading>
+            </Box>
 
             {/* Content Area */}
-            <Box flex="1" w="full" position="relative" overflow="hidden" mt={4}>
-              {!activeApp && (
-                <SimpleGrid
-                  columns={3}
-                  spacing={6}
-                  flex="1"
-                  alignItems="center"
-                >
+            <Box flex="1" overflowY="auto" p={4}>
+              {!activeApp ? (
+                <SimpleGrid columns={3} spacing={6}>
                   <AppIcon
                     label="Dealer"
                     emoji="🧙"
@@ -155,21 +149,13 @@ export default function MainGame({
                     onClick={() => setActiveApp("storage")}
                   />
                 </SimpleGrid>
-              )}
-
-              {activeApp && (
-                <Flex
-                  direction="column"
-                  h="full"
-                  position="relative"
-                  flex="1"
-                  overflow="hidden"
-                >
+              ) : (
+                <Box position="relative">
                   <IconButton
                     aria-label="Close App"
                     icon={<CloseIcon />}
                     position="absolute"
-                    top={3} // << inset properly
+                    top={3}
                     right={3}
                     size="sm"
                     onClick={() => setActiveApp(null)}
@@ -177,15 +163,13 @@ export default function MainGame({
                     colorScheme="gray"
                   />
 
-                  {/* Scrollable App Content */}
-                  <Box overflowY="auto" flex="1" px={2}>
+                  <Box mt={10}>
                     {activeApp === "dealer" && (
                       <DealerStatsPanel
                         dealerState={dealerState}
                         totalStorageValue={totalStorageValue}
                       />
                     )}
-
                     {activeApp === "marketplace" && (
                       <MarketPanel
                         dealerState={dealerState}
@@ -199,7 +183,6 @@ export default function MainGame({
                         setDefaultBuyAmount={setDefaultBuyAmount}
                       />
                     )}
-
                     {activeApp === "storage" && (
                       <StoragePanel
                         dealerState={dealerState}
@@ -210,10 +193,10 @@ export default function MainGame({
                       />
                     )}
                   </Box>
-                </Flex>
+                </Box>
               )}
             </Box>
-          </Box>
+          </Flex>
         </Flex>
       </Flex>
     </Flex>
