@@ -37,10 +37,6 @@ export default function DealerInfo({ dealerState }: DealerInfoProps) {
       <Text fontSize="sm" color="gray.400" noOfLines={1}>
         {dealerState.location}
       </Text>
-
-      <Text fontSize="md" fontWeight="bold" color="teal.300" mt={1}>
-        ${dealerState.stats.gold}
-      </Text>
     </VStack>
   );
 }
