@@ -15,6 +15,7 @@ import DealerPanel from "@/components/DealerPanel";
 import DealerStatsPanel from "@/components/DealerStatsPanel"; // 🧙 import DealerStatsPanel
 import MarketPanel from "@/components/MarketPanel";
 import StoragePanel from "@/components/StoragePanel";
+import PortalRevealOverlay from "@/components/PortalRevealOverlay";
 
 import { useGameActions } from "@/hooks/useGameActions";
 
@@ -42,7 +43,15 @@ export default function MainGame({
   } = useGameActions(dealerState, setDealerState);
 
   return (
-    <Flex direction="column" minH="100dvh" bg="brand.background">
+    <Flex
+      direction="column"
+      minH="100dvh"
+      bg="brand.background"
+      position="relative"
+    >
+      {/* 🔥 Add PortalRevealOverlay at the top */}
+      <PortalRevealOverlay />
+
       <TopBar
         onNextTurn={handleNextTurn}
         month={
