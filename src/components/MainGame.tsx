@@ -54,7 +54,7 @@ export default function MainGame({
       bg="brand.background"
       position="relative"
     >
-      {/* 🔥 Add PortalRevealOverlay at the top */}
+      {/* Portal Reveal Animation */}
       <PortalRevealOverlay />
 
       <TopBar
@@ -81,12 +81,14 @@ export default function MainGame({
       {/* Main Content */}
       <Flex
         direction={{ base: "column", md: "row" }}
-        minW={{ base: "100vw", md: "80vw" }}
+        minW="100vw"
         mx="auto"
         flex="1"
         w="full"
-        minH={{ base: "calc(100dvh - 64px)", md: "auto" }}
         overflow="hidden"
+        align="flex-start"
+        gap={6}
+        p={4}
       >
         {/* Left: Dealer Info */}
         <Box flexShrink={0}>
@@ -94,99 +96,125 @@ export default function MainGame({
         </Box>
 
         {/* Right: Dealer Phone */}
-        <Box
-          flex="1"
-          display="flex"
-          flexDirection="column"
-          bg="gray.800"
-          borderRadius="lg"
-          p={4}
+        <Flex
+          direction="column"
+          flexGrow={1}
+          bg="gray.800" // Outer frame
+          borderRadius="2xl"
+          border="6px solid black"
+          p={2} // << tighter outer padding
+          boxShadow="0 0 20px rgba(0, 0, 0, 0.7)"
           overflow="hidden"
-          minH="full"
+          minH="600px"
+          maxH="calc(100dvh - 100px)"
+          justify="flex-start"
         >
-          {/* Phone Header */}
-          <Heading
-            size="md"
-            textAlign="center"
-            mb={4}
-            color="gray.300"
-            fontFamily="heading"
+          {/* Phone "Screen" */}
+          <Box
+            bg="black" // Full screen background
+            borderRadius="lg"
+            flex="1"
+            overflow="hidden"
+            display="flex"
+            flexDirection="column"
           >
-            Dealer Phone
-          </Heading>
+            {/* Phone Header */}
+            <Heading
+              size="md"
+              textAlign="center"
+              p={4}
+              color="gray.300"
+              fontFamily="heading"
+              bg="brand.surface"
+            >
+              📱 Dealer Phone
+            </Heading>
 
-          {/* Dealer Phone Content */}
-          <Box flex="1" position="relative" overflow="hidden">
-            {!activeApp && (
-              <SimpleGrid columns={3} spacing={6} flex="1">
-                <AppIcon
-                  label="Dealer"
-                  emoji="🧙"
-                  onClick={() => setActiveApp("dealer")}
-                />
-                <AppIcon
-                  label="Market"
-                  emoji="🛒"
-                  onClick={() => setActiveApp("marketplace")}
-                />
-                <AppIcon
-                  label="Storage"
-                  emoji="📦"
-                  onClick={() => setActiveApp("storage")}
-                />
-              </SimpleGrid>
-            )}
+            {/* Content Area */}
+            <Box flex="1" w="full" position="relative" overflow="hidden" mt={4}>
+              {!activeApp && (
+                <SimpleGrid
+                  columns={3}
+                  spacing={6}
+                  flex="1"
+                  alignItems="center"
+                >
+                  <AppIcon
+                    label="Dealer"
+                    emoji="🧙"
+                    onClick={() => setActiveApp("dealer")}
+                  />
+                  <AppIcon
+                    label="Market"
+                    emoji="🛒"
+                    onClick={() => setActiveApp("marketplace")}
+                  />
+                  <AppIcon
+                    label="Storage"
+                    emoji="📦"
+                    onClick={() => setActiveApp("storage")}
+                  />
+                </SimpleGrid>
+              )}
 
-            {activeApp && (
-              <Flex direction="column" h="full" position="relative" flex="1">
-                <IconButton
-                  aria-label="Close App"
-                  icon={<CloseIcon />}
-                  position="absolute"
-                  top={2}
-                  right={2}
-                  size="sm"
-                  onClick={() => setActiveApp(null)}
-                  zIndex={10}
-                  colorScheme="gray"
-                />
+              {activeApp && (
+                <Flex
+                  direction="column"
+                  h="full"
+                  position="relative"
+                  flex="1"
+                  overflow="hidden"
+                >
+                  <IconButton
+                    aria-label="Close App"
+                    icon={<CloseIcon />}
+                    position="absolute"
+                    top={3} // << inset properly
+                    right={3}
+                    size="sm"
+                    onClick={() => setActiveApp(null)}
+                    zIndex={10}
+                    colorScheme="gray"
+                  />
 
-                <Box mt={8} overflowY="auto" flex="1" px={2}>
-                  {activeApp === "dealer" && (
-                    <DealerStatsPanel
-                      dealerState={dealerState}
-                      totalStorageValue={totalStorageValue}
-                    />
-                  )}
+                  {/* Scrollable App Content */}
+                  <Box overflowY="auto" flex="1" px={2}>
+                    {activeApp === "dealer" && (
+                      <DealerStatsPanel
+                        dealerState={dealerState}
+                        totalStorageValue={totalStorageValue}
+                      />
+                    )}
 
-                  {activeApp === "marketplace" && (
-                    <MarketPanel
-                      dealerState={dealerState}
-                      products={products}
-                      marketPrices={marketPrices}
-                      marketStock={marketStock}
-                      buyAmounts={buyAmounts}
-                      setBuyAmounts={setBuyAmounts}
-                      handleBuy={handleBuy}
-                      defaultBuyAmount={defaultBuyAmount}
-                      setDefaultBuyAmount={setDefaultBuyAmount}
-                    />
-                  )}
+                    {activeApp === "marketplace" && (
+                      <MarketPanel
+                        dealerState={dealerState}
+                        products={products}
+                        marketPrices={marketPrices}
+                        marketStock={marketStock}
+                        buyAmounts={buyAmounts}
+                        setBuyAmounts={setBuyAmounts}
+                        handleBuy={handleBuy}
+                        defaultBuyAmount={defaultBuyAmount}
+                        setDefaultBuyAmount={setDefaultBuyAmount}
+                      />
+                    )}
 
-                  {activeApp === "storage" && (
-                    <StoragePanel
-                      dealerState={dealerState}
-                      marketPrices={marketPrices}
-                      handleSellAmount={handleSellAmount}
-                      handleSellAll={handleSellAll}
-                      totalStorageValue={totalStorageValue}
-                    />
-                  )}
-                </Box>
-              </Flex>
-            )}
+                    {activeApp === "storage" && (
+                      <StoragePanel
+                        dealerState={dealerState}
+                        marketPrices={marketPrices}
+                        handleSellAmount={handleSellAmount}
+                        handleSellAll={handleSellAll}
+                        totalStorageValue={totalStorageValue}
+                      />
+                    )}
+                  </Box>
+                </Flex>
+              )}
+            </Box>
           </Box>
-        </Box>
+        </Flex>
       </Flex>
     </Flex>
   );
@@ -207,16 +235,28 @@ function AppIcon({
       direction="column"
       align="center"
       justify="center"
-      bg="gray.700"
-      borderRadius="xl"
-      p={4}
-      cursor="pointer"
-      _hover={{ bg: "gray.600" }}
       onClick={onClick}
+      cursor="pointer"
       transition="0.2s"
     >
-      <Text fontSize="2xl">{emoji}</Text>
-      <Text mt={2} fontSize="sm" color="gray.200">
+      <Flex
+        w="80px"
+        h="80px"
+        bg="whiteAlpha.300"
+        borderRadius="xl"
+        align="center"
+        justify="center"
+        _hover={{ bg: "gray.500" }}
+      >
+        <Text fontSize="3xl">{emoji}</Text>
+      </Flex>
+      <Text
+        mt={2}
+        fontSize="sm"
+        color="gray.300"
+        textAlign="center"
+        fontWeight="bold"
+      >
         {label}
       </Text>
     </Flex>

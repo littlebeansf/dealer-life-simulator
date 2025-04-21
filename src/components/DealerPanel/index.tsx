@@ -1,5 +1,7 @@
 import { Box, Flex, HStack } from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
+import { raceImages } from "@/data/raceImages"; // <<- Now import the pixel images
+
 import DealerInfo from "./DealerInfo";
 import SettingsMenu from "./SettingsMenu";
 import StatBars from "./StatBars";
@@ -34,16 +36,24 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
           boxSize="80px"
           borderRadius="full"
           bg="gray.600"
+          overflow="hidden"
           display="flex"
           alignItems="center"
           justifyContent="center"
-          fontSize="3xl"
         >
-          {/* Race Icon */}
-          {/* Important: still access dealerState.race for the icon */}
-          {dealerState.race &&
-            dealerState.race in raceIcons &&
-            raceIcons[dealerState.race]}
+          {/* Race Image */}
+          {dealerState.race && (
+            <img
+              src={raceImages[dealerState.race] || "/assets/races/default.png"}
+              alt={dealerState.race}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                imageRendering: "pixelated", // important for pixel art
+              }}
+            />
+          )}
         </Box>
 
         {/* Gold + Settings */}
@@ -75,6 +85,3 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
     </Flex>
   );
 }
-
-// Make sure you import raceIcons!
-import { raceIcons } from "@/utils/raceIcons";

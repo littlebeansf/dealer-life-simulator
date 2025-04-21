@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 
 import { races, genders, Gender, Race, Dealer } from "@/types/character";
 import { generateRandomDealerData } from "@/utils/helpers";
+import { raceImages } from "@/data/raceImages";
 
 const MotionBox = motion(Box);
 const MotionText = motion(Text);
@@ -63,7 +64,6 @@ export default function CharacterCreation({
 
   const selectedRaceInfo = races.find((r) => r.label === race);
 
-  // Better emoji icons for gender
   const genderIcons = {
     Male: "🚹",
     Female: "🚺",
@@ -74,7 +74,7 @@ export default function CharacterCreation({
     <MotionBox
       p={0}
       w="100vw"
-      h="100dvh" // ✅ Dynamic Viewport Height for mobile!
+      h="100dvh"
       bg="brand.background"
       color="brand.text"
       display="flex"
@@ -111,6 +111,7 @@ export default function CharacterCreation({
           _placeholder={{ color: "gray.400" }}
         />
 
+        {/* Lineage (Race) Picker */}
         <Box
           textAlign="center"
           bg="brand.surface"
@@ -121,21 +122,48 @@ export default function CharacterCreation({
           <Text mb={2} fontWeight="bold">
             Select Your Lineage:
           </Text>
-          <HStack wrap="wrap" spacing={3} justify="center">
+          <HStack wrap="wrap" spacing={4} justify="center">
             {races.map((r) => (
               <Tooltip
                 key={r.label}
                 label={r.description}
                 fontSize="sm"
-                bg="gray.700"
+                bg="gray.600"
+                color="white"
               >
                 <Button
                   onClick={() => setRace(r.label as Race)}
-                  colorScheme={race === r.label ? "purple" : "gray"}
-                  fontSize="2xl"
                   size="sm"
+                  p={2}
+                  borderRadius="full"
+                  w="96px"
+                  h="96px"
+                  bg={race === r.label ? "purple.600" : "gray.700"}
+                  border={
+                    race === r.label
+                      ? "3px solid #9F7AEA" // Thicker border for active race
+                      : "2px solid transparent"
+                  }
+                  _hover={{
+                    bg: race === r.label ? "purple.500" : "gray.600",
+                  }}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  overflow="hidden"
                 >
-                  {r.icon}
+                  <Box w="80px" h="80px">
+                    <img
+                      src={raceImages[r.label] || raceImages["default"]}
+                      alt={r.label}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        imageRendering: "pixelated",
+                      }}
+                    />
+                  </Box>
                 </Button>
               </Tooltip>
             ))}
@@ -155,6 +183,7 @@ export default function CharacterCreation({
           )}
         </Box>
 
+        {/* Form (Gender) Picker */}
         <Box
           textAlign="center"
           bg="brand.surface"
@@ -180,6 +209,7 @@ export default function CharacterCreation({
           </HStack>
         </Box>
 
+        {/* Confirm + Random Buttons with Sparkles */}
         <HStack
           spacing={4}
           position="relative"
