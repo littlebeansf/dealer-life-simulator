@@ -265,24 +265,19 @@ function AppIcon({
   onClick: () => void;
 }) {
   return (
-    <Flex
-      direction="column"
-      align="center"
-      justify="center"
-      onClick={onClick}
-      cursor="pointer"
-      transition="0.2s"
-      _hover={{ transform: "scale(1.05)" }}
-    >
-      <Flex
+    <Flex direction="column" align="center" justify="center" transition="0.2s">
+      <Box
+        as="button"
+        onClick={onClick}
         w="80px"
         h="80px"
         bg="whiteAlpha.300"
         borderRadius="xl"
-        align="center"
-        justify="center"
-        _hover={{ bg: "gray.600" }}
-        transition="background 0.2s"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        _hover={{ bg: "gray.600", transform: "scale(1.05)" }}
+        transition="all 0.2s"
       >
         <Box w="48px" h="48px">
           <img
@@ -296,7 +291,7 @@ function AppIcon({
             }}
           />
         </Box>
-      </Flex>
+      </Box>
       <Text
         mt={2}
         fontSize="md"
