@@ -8,7 +8,6 @@ import {
   MenuItem,
 } from "@chakra-ui/react";
 import { SettingsIcon } from "@chakra-ui/icons";
-import { useAnimatedNumber } from "@/hooks/useAnimatedNumber";
 import { DealerState } from "@/types/game";
 
 interface SettingsMenuProps {
@@ -16,20 +15,8 @@ interface SettingsMenuProps {
 }
 
 export default function SettingsMenu({ dealerState }: SettingsMenuProps) {
-  const animatedGold = useAnimatedNumber(dealerState.stats.gold);
-
   return (
     <VStack spacing={1} align="end">
-      <Text
-        fontSize="lg"
-        fontWeight="bold"
-        color="brand.text"
-        minW="80px"
-        textAlign="right"
-      >
-        💰 {animatedGold} $
-      </Text>
-
       <Menu>
         <MenuButton
           as={IconButton}

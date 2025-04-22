@@ -16,10 +16,13 @@ import DealerStatsPanel from "@/components/DealerStatsPanel";
 import MarketPanel from "@/components/MarketPanel";
 import StoragePanel from "@/components/StoragePanel";
 import PortalRevealOverlay from "@/components/PortalRevealOverlay";
-import DealerJournalPanel from "@/components/DealerJournalPanel"; // ✅ NEW clean import
+import DealerJournalPanel from "@/components/DealerJournalPanel";
 
 import { useGameActions } from "@/hooks/useGameActions";
 import { CloseIcon } from "@chakra-ui/icons";
+import { useAnimatedNumber } from "@/hooks/useAnimatedNumber";
+
+import { icons } from "@/data/icons";
 
 interface MainGameProps {
   dealerState: DealerState;
@@ -47,6 +50,8 @@ export default function MainGame({
     handleSellAll,
     totalStorageValue,
   } = useGameActions(dealerState, setDealerState);
+
+  const animatedGold = useAnimatedNumber(dealerState.stats.gold);
 
   return (
     <Flex
@@ -118,17 +123,54 @@ export default function MainGame({
             overflow="hidden"
           >
             {/* Phone Header */}
-            <Box
+            <Flex
               bg="brand.surface"
               borderTopRadius="lg"
               p={4}
               borderBottom="1px solid #333"
-              textAlign="center"
+              align="center"
+              justify="space-between"
             >
-              <Heading size="md" color="gray.300" fontFamily="heading">
-                📱 Dealer Phone
-              </Heading>
-            </Box>
+              <Flex align="center" gap={2}>
+                <Box w="28px" h="28px">
+                  <img
+                    src={icons.device.Phone}
+                    alt="Phone"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      imageRendering: "pixelated",
+                    }}
+                  />
+                </Box>
+                <Heading
+                  size="md"
+                  color="gray.300"
+                  //fontFamily="'IM Fell English SC', serif"
+                >
+                  Dealer Phone
+                </Heading>
+              </Flex>
+
+              <Flex align="center" gap={2}>
+                <Box w="28px" h="28px">
+                  <img
+                    src={icons.status.Gold}
+                    alt="Gold"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      imageRendering: "pixelated",
+                    }}
+                  />
+                </Box>
+                <Text fontSize="x-large" color="yellow.300" fontWeight="bold">
+                  {animatedGold}$
+                </Text>
+              </Flex>
+            </Flex>
 
             {/* Content Area */}
             <Box flex="1" overflowY="auto" p={4}>
@@ -136,22 +178,22 @@ export default function MainGame({
                 <SimpleGrid columns={3} spacing={6}>
                   <AppIcon
                     label="Dealer"
-                    emoji="🧙"
+                    icon={icons.app.Dealer}
                     onClick={() => setActiveApp("dealer")}
                   />
                   <AppIcon
                     label="Market"
-                    emoji="🛒"
+                    icon={icons.app.Market}
                     onClick={() => setActiveApp("marketplace")}
                   />
                   <AppIcon
                     label="Storage"
-                    emoji="📦"
+                    icon={icons.app.Storage}
                     onClick={() => setActiveApp("storage")}
                   />
                   <AppIcon
                     label="Scrolls"
-                    emoji="📜"
+                    icon={icons.app.Scroll}
                     onClick={() => setActiveApp("dealerScrolls")}
                   />
                 </SimpleGrid>
@@ -215,11 +257,11 @@ export default function MainGame({
 // App Icon Component
 function AppIcon({
   label,
-  emoji,
+  icon,
   onClick,
 }: {
   label: string;
-  emoji: string;
+  icon: string;
   onClick: () => void;
 }) {
   return (
@@ -230,6 +272,7 @@ function AppIcon({
       onClick={onClick}
       cursor="pointer"
       transition="0.2s"
+      _hover={{ transform: "scale(1.05)" }}
     >
       <Flex
         w="80px"
@@ -238,13 +281,25 @@ function AppIcon({
         borderRadius="xl"
         align="center"
         justify="center"
-        _hover={{ bg: "gray.500" }}
+        _hover={{ bg: "gray.600" }}
+        transition="background 0.2s"
       >
-        <Text fontSize="3xl">{emoji}</Text>
+        <Box w="48px" h="48px">
+          <img
+            src={icon}
+            alt={label}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              imageRendering: "pixelated",
+            }}
+          />
+        </Box>
       </Flex>
       <Text
         mt={2}
-        fontSize="sm"
+        fontSize="md"
         color="gray.300"
         textAlign="center"
         fontWeight="bold"

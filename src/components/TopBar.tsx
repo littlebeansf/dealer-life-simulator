@@ -1,4 +1,13 @@
-import { Flex, IconButton, Text, Tooltip } from "@chakra-ui/react";
+import {
+  Flex,
+  IconButton,
+  Text,
+  Tooltip,
+  Box,
+  useColorMode,
+  Button,
+} from "@chakra-ui/react";
+import { icons } from "@/data/icons";
 
 interface TopBarProps {
   onNextTurn: () => void;
@@ -7,6 +16,8 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
+  const { colorMode, toggleColorMode } = useColorMode();
+
   return (
     <Flex
       bg="#2A2A2A"
@@ -27,7 +38,20 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
         <Tooltip label="Next Month" hasArrow placement="top" bg="gray.600">
           <IconButton
             aria-label="Next Month"
-            icon={<span style={{ fontSize: "24px" }}>📅</span>}
+            icon={
+              <Box w="32px" h="32px">
+                <img
+                  src={icons.navigation.Next}
+                  alt="Next Month"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    imageRendering: "pixelated",
+                  }}
+                />
+              </Box>
+            }
             size="lg"
             variant="solid"
             colorScheme="gray"
@@ -50,6 +74,11 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
             {year}
           </Text>
         </Flex>
+      </Flex>
+      <Flex align="right">
+        <Button onClick={toggleColorMode} size="sm" ml={4}>
+          {colorMode === "light" ? "🌙" : "🌞"}
+        </Button>
       </Flex>
     </Flex>
   );

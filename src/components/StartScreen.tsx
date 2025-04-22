@@ -16,7 +16,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
     setPortalOpen(true);
     setTimeout(() => {
       onStart();
-    }, 2000); // After portal animation
+    }, 2000);
   };
 
   return (
@@ -34,58 +34,70 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       bgRepeat="no-repeat"
       position="relative"
       overflow="hidden"
-      fontFamily="'Cinzel Decorative', serif"
+      //fontFamily="'IM Fell English SC', serif"
     >
-      {/* Floating Giant Title */}
+      {/* Title */}
       <MotionText
-        initial={{ opacity: 0, y: -80 }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          textShadow: "0px 0px 20px rgba(255, 255, 255, 0.8)",
-        }}
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.8, ease: "easeOut" }}
-        fontSize={{ base: "5xl", md: "8xl" }}
+        fontSize={{ base: "4xl", md: "7xl" }}
         fontWeight="bold"
         color="white"
         textAlign="center"
-        mt={16}
-        letterSpacing="widest"
-        textShadow="0px 0px 15px rgba(0, 255, 255, 0.6)"
+        mt={{ base: 20, md: 28 }}
+        letterSpacing="wider"
         zIndex="10"
       >
         Dealer Life Simulator
       </MotionText>
 
       {/* Button */}
-      <VStack justify="center" align="center" h="full" spacing={8}>
-        <Button
-          onClick={handleStartClick}
-          mt={32}
-          size="lg"
-          fontSize="2xl"
-          px={12}
-          py={6}
-          bg="blackAlpha.700"
-          _hover={{
-            bg: "blackAlpha.900",
-            textShadow: "0 0 20px cyan",
-            boxShadow: "0 0 20px rgba(0, 255, 255, 0.7)",
-          }}
-          color="white"
-          border="2px solid white"
-          borderRadius="full"
-          transition="all 0.4s ease"
-          textShadow="0 0 10px rgba(0, 255, 255, 0.8)"
-          letterSpacing="wider"
-          fontFamily="'Cinzel Decorative', serif"
-          zIndex="10"
-        >
-          Begin the Pact
-        </Button>
+      <VStack
+        justify="center"
+        align="center"
+        h="full"
+        spacing={8}
+        mt={{ base: -24, md: -32 }}
+      >
+        <motion.div whileHover={{ scale: 1.08 }} transition={{ duration: 0.3 }}>
+          <Button
+            onClick={handleStartClick}
+            size="lg"
+            fontSize={{ base: "2xl", md: "3xl" }}
+            px={{ base: 12, md: 16 }}
+            py={{ base: 7, md: 9 }}
+            bg="blackAlpha.700"
+            color="white"
+            borderRadius="full"
+            letterSpacing="wide"
+            //fontFamily="'IM Fell English SC', serif"
+            boxShadow="none"
+            border="none"
+            _hover={{
+              bg: "blackAlpha.800",
+              boxShadow: "none",
+              border: "none",
+            }}
+            _focus={{
+              boxShadow: "none",
+              borderColor: "transparent",
+              border: "none",
+            }}
+            _active={{
+              boxShadow: "none",
+              borderColor: "transparent",
+              border: "none",
+              bg: "blackAlpha.800",
+            }}
+            zIndex="10"
+          >
+            Begin the Pact
+          </Button>
+        </motion.div>
       </VStack>
 
-      {/* Magical Portal Animation */}
+      {/* Magical Portal Transition */}
       <AnimatePresence>
         {portalOpen && (
           <MotionBox
