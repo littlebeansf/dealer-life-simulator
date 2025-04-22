@@ -1,3 +1,4 @@
+import { LocationType } from "@/data/locations";
 import { Gender, Race } from "./character";
 
 // Type for Dealer Scrolls entries
@@ -13,6 +14,9 @@ export interface Product {
   basePrice: number;
   rarity: "common" | "uncommon" | "rare" | "legendary";
   icon: string;
+  craftable?: boolean;
+  addictionPotential?: number;
+  availableAt: LocationType[];
 }
 
 export interface StorageItem {
@@ -33,21 +37,6 @@ export interface DealerStats {
   totalGoldSpent: number;
   reputation: number;
 }
-
-export type LocationType =
-  | "Human City"
-  | "Elven Forest"
-  | "Dwarven Mountain"
-  | "Goblin Caves"
-  | "Orcish Plains"
-  | "Arcane Tower"
-  | "Crystal Shores"
-  | "Shroomgrove"
-  | "Ashen Wastes"
-  | "Dwarven Halls"
-  | "Sunscorched Desert"
-  | "Haunted Marsh"
-  | "Dark Forest";
 
 // Full DealerState during the game
 export interface DealerState {
