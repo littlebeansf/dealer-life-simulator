@@ -200,8 +200,8 @@ export default function MainGame({
                     onClick={() => setActiveApp("dealerScrolls")}
                   />
                   <AppIcon
-                    label="World Map" // ✅ NEW WORLD MAP BUTTON
-                    icon={icons.navigation.Next}
+                    label="World Map"
+                    icon={icons.app.Map}
                     onClick={() => setActiveApp("map")}
                   />
                 </SimpleGrid>

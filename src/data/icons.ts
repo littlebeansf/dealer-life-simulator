@@ -9,6 +9,7 @@ export const appIcons: Record<string, string> = {
   Market: new URL("@/assets/icons/apps/market.png", import.meta.url).href,
   Storage: new URL("@/assets/icons/apps/storage.png", import.meta.url).href,
   Scroll: new URL("@/assets/icons/apps/scroll.png", import.meta.url).href,
+  Map: new URL("@/assets/icons/apps/map.png", import.meta.url).href,
 };
 
 export const statusIcons: Record<string, string> = {

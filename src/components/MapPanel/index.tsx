@@ -1,4 +1,4 @@
-import { Box, Flex, Image, Text, useToast } from "@chakra-ui/react";
+import { Box, Flex, Image, Text, useToast, Tooltip } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { locations } from "@/data/locations";
 import { DealerState } from "@/types/game";
@@ -28,7 +28,7 @@ export default function MapPanel({
     const currentLoc = locations.find((l) => l.id === dealerState.location);
     if (currentLoc) {
       setWalkerCoords({ x: currentLoc.x, y: currentLoc.y });
-      animationKeyRef.current += 1; // reset animation after travel
+      animationKeyRef.current += 1;
     }
   }, [dealerState.location]);
 
@@ -39,32 +39,84 @@ export default function MapPanel({
     const to = locations.find((l) => l.id === targetId);
     if (!from || !to) return;
 
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const duration = Math.max(1000, distance * 25);
+    const travelCost = Math.floor(distance * 1.8);
+
+    if (dealerState.stats.gold < travelCost) {
+      toast({
+        title: "Not enough gold to travel.",
+        description: `Travel costs ${travelCost}$`,
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
+      return;
+    }
+
     setIsTraveling(true);
     setWalkerCoords({ x: from.x, y: from.y });
 
-    // Animate toward destination
     requestAnimationFrame(() => {
       setWalkerCoords({ x: to.x, y: to.y });
 
       setTimeout(() => {
-        setDealerState((prev) => (prev ? { ...prev, location: to.id } : prev));
+        setDealerState((prev) => {
+          if (!prev) return prev;
+          const date = `${
+            [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+            ][prev.time.month]
+          } ${prev.time.year}`;
+
+          return {
+            ...prev,
+            location: to.id,
+            stats: {
+              ...prev.stats,
+              gold: prev.stats.gold - travelCost,
+            },
+            journal: [
+              ...prev.journal,
+              {
+                date,
+                text: `Traveled from ${from.name} to ${to.name} (-${travelCost}$)`,
+              },
+            ],
+          };
+        });
+
         setIsTraveling(false);
 
         toast({
           title: `Arrived at ${to.name}`,
+          description: `Travel cost: ${travelCost}$`,
           status: "success",
           duration: 3000,
           isClosable: true,
           position: "top-right",
           variant: "subtle",
         });
-      }, 1400);
+      }, duration);
     });
   };
 
   return (
     <Flex direction="column" align="center" justify="center" w="full" h="full">
-      {/* Map */}
       <Box
         w="full"
         h="full"
@@ -81,7 +133,7 @@ export default function MapPanel({
           draggable={false}
         />
 
-        {/* Dealer Icon */}
+        {/* Character Icon */}
         {walkerCoords && (
           <Box
             key={`walker-${animationKeyRef.current}`}
@@ -106,44 +158,61 @@ export default function MapPanel({
           </Box>
         )}
 
-        {/* Location Markers */}
-        {locations.map((location) => (
-          <Box
-            key={location.id}
-            position="absolute"
-            top={`${location.y}%`}
-            left={`${location.x}%`}
-            transform="translate(-50%, -50%)"
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            gap={1}
-            zIndex={10}
-          >
+        {/* Location Dots + Travel Cost Tooltip */}
+        {locations.map((location) => {
+          const from = locations.find((l) => l.id === dealerState.location);
+          const dx = from ? location.x - from.x : 0;
+          const dy = from ? location.y - from.y : 0;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const cost = Math.floor(dist * 1.8);
+
+          return (
             <Box
-              as="button"
-              w="12px"
-              h="12px"
-              borderRadius="full"
-              bg="white"
-              border="2px solid black"
-              cursor="pointer"
-              _hover={{ bg: "purple.400" }}
-              onClick={() => handleTravel(location.id)}
-            />
-            <Text
-              fontSize="xs"
-              color="white"
-              bg="blackAlpha.600"
-              px={1}
-              borderRadius="sm"
-              textAlign="center"
-              pointerEvents="none"
+              key={location.id}
+              position="absolute"
+              top={`${location.y}%`}
+              left={`${location.x}%`}
+              transform="translate(-50%, -50%)"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              gap={1}
+              zIndex={10}
             >
-              {location.name}
-            </Text>
-          </Box>
-        ))}
+              <Tooltip
+                label={`Travel cost: ${cost}$`}
+                placement="bottom"
+                hasArrow
+                bg="gray.700"
+                color="white"
+                fontSize="xs"
+              >
+                <Box
+                  as="button"
+                  w="12px"
+                  h="12px"
+                  borderRadius="full"
+                  bg="white"
+                  border="2px solid black"
+                  cursor="pointer"
+                  _hover={{ bg: "purple.400" }}
+                  onClick={() => handleTravel(location.id)}
+                />
+              </Tooltip>
+              <Text
+                fontSize="xs"
+                color="white"
+                bg="blackAlpha.600"
+                px={1}
+                borderRadius="sm"
+                textAlign="center"
+                pointerEvents="none"
+              >
+                {location.name}
+              </Text>
+            </Box>
+          );
+        })}
       </Box>
 
       <style>{`
