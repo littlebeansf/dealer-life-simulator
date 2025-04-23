@@ -10,8 +10,6 @@ export const raceImages: Record<string, string> = {
   Human: new URL("@/assets/races/human.png", import.meta.url).href,
   Orc: new URL("@/assets/races/orc.png", import.meta.url).href,
   Fairy: new URL("@/assets/races/fairy.png", import.meta.url).href,
-  Troll: new URL("@/assets/races/troll.png", import.meta.url).href,
   Dwarf: new URL("@/assets/races/dwarf.png", import.meta.url).href,
   Lizardfolk: new URL("@/assets/races/lizardfolk.png", import.meta.url).href,
-  default: new URL("@/assets/races/default.png", import.meta.url).href,
 };
