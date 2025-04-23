@@ -1,19 +1,19 @@
 // /utils/raceStartingLocations.ts
 
+import { LocationType } from "@/data/locations";
 import { Race } from "../types/character";
-import { LocationType } from "../types/game";
 
 export const raceStartingLocations: Record<Race, LocationType> = {
-  Human: "Human City",
-  Elf: "Elven Forest",
-  Dwarf: "Dwarven Mountain",
-  Goblin: "Goblin Caves",
-  Orc: "Orcish Plains",
-  Vampire: "Haunted Marsh",
-  Werewolf: "Dark Forest",
-  Fairy: "Elven Forest",
-  Demon: "Ashen Wastes",
-  Angel: "Arcane Tower",
-  Golem: "Dwarven Halls",
+  Human: "Valewatch",
+  Elf: "Sylvanglade",
+  Dwarf: "Ironroot Bastion",
+  Goblin: "Wretchgloom",
+  Orc: "Bloodfang Steppes",
+  Vampire: "Weeping Marshes",
+  Werewolf: "Duskmire Woods",
+  Fairy: "Sylvanglade",
+  Demon: "Ashen Scar",
+  Angel: "Astral Spire",
+  Golem: "Deepforge Warrens",
   Lizardfolk: "Shroomgrove",
 };
