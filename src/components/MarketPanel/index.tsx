@@ -34,10 +34,15 @@ export default function MarketPanel({
 }: MarketPanelProps) {
   const isMobile = useBreakpointValue({ base: true, md: false });
 
+  // Filter products available at the current location
+  const availableProducts = products.filter((product) =>
+    product.availableAt.includes(dealerState.location)
+  );
+
   return (
     <Box flex="1" bg="brand.surface" p={4} borderRadius="md" overflow="hidden">
       <Heading size="md" color="brand.text" textAlign="center" mb={4}>
-        Marketplace - {dealerState.location}
+        Marketplace — {dealerState.location}
       </Heading>
 
       <HStack justify="center" mb={4} spacing={3}>
@@ -45,6 +50,8 @@ export default function MarketPanel({
           <Button
             key={amount}
             size="sm"
+            variant={amount === defaultBuyAmount ? "solid" : "outline"}
+            colorScheme="purple"
             onClick={() => setDefaultBuyAmount(amount)}
           >
             Buy {amount}
@@ -58,7 +65,7 @@ export default function MarketPanel({
           gap={4}
           w="full"
         >
-          {products
+          {availableProducts
             .slice()
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((product) => {
