@@ -16,7 +16,7 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
-  const { colorMode, toggleColorMode } = useColorMode();
+  //const { colorMode, toggleColorMode } = useColorMode();
 
   return (
     <Flex
@@ -75,11 +75,11 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
           </Text>
         </Flex>
       </Flex>
-      <Flex align="right">
+      {/*<Flex align="right">
         <Button onClick={toggleColorMode} size="sm" ml={4}>
           {colorMode === "light" ? "🌙" : "🌞"}
         </Button>
-      </Flex>
+      </Flex>*/}
     </Flex>
   );
 }
