@@ -251,7 +251,10 @@ export default function MainGame({
                       <DealerJournalPanel dealerState={dealerState} />
                     )}
                     {activeApp === "map" && (
-                      <MapPanel dealerState={dealerState} />
+                      <MapPanel
+                        dealerState={dealerState}
+                        setDealerState={setDealerState}
+                      />
                     )}
                   </Box>
                 </Box>

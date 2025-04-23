@@ -21,6 +21,8 @@ export const statusIcons: Record<string, string> = {
 
 export const navigationIcons: Record<string, string> = {
   Next: new URL("@/assets/icons/navigation/next.png", import.meta.url).href,
+  Traveling: new URL("@/assets/icons/navigation/traveling.png", import.meta.url)
+    .href,
 };
 
 export const deviceIcons: Record<string, string> = {

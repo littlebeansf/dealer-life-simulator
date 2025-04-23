@@ -1,30 +1,70 @@
-import { Box, Flex, Image, Text, Button, useToast } from "@chakra-ui/react";
+import { Box, Flex, Image, Text, useToast } from "@chakra-ui/react";
+import { useEffect, useRef, useState } from "react";
 import { locations } from "@/data/locations";
 import { DealerState } from "@/types/game";
 import { Generic } from "@/data/generic";
+import { icons } from "@/data/icons";
 
 interface MapPanelProps {
   dealerState: DealerState;
+  setDealerState: React.Dispatch<React.SetStateAction<DealerState | null>>;
 }
 
-export default function MapPanel({ dealerState }: MapPanelProps) {
+export default function MapPanel({
+  dealerState,
+  setDealerState,
+}: MapPanelProps) {
   const toast = useToast();
+  const animationKeyRef = useRef(0);
 
-  const handleTravel = (locationName: string) => {
-    toast({
-      title: `Traveling to ${locationName}...`,
-      status: "info",
-      duration: 2000,
-      isClosable: true,
-      position: "top-left",
-      variant: "subtle",
+  const [isTraveling, setIsTraveling] = useState(false);
+  const [walkerCoords, setWalkerCoords] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Update character coords initially and after travel completes
+  useEffect(() => {
+    const currentLoc = locations.find((l) => l.id === dealerState.location);
+    if (currentLoc) {
+      setWalkerCoords({ x: currentLoc.x, y: currentLoc.y });
+      animationKeyRef.current += 1; // reset animation after travel
+    }
+  }, [dealerState.location]);
+
+  const handleTravel = (targetId: string) => {
+    if (isTraveling || dealerState.location === targetId) return;
+
+    const from = locations.find((l) => l.id === dealerState.location);
+    const to = locations.find((l) => l.id === targetId);
+    if (!from || !to) return;
+
+    setIsTraveling(true);
+    setWalkerCoords({ x: from.x, y: from.y });
+
+    // Animate toward destination
+    requestAnimationFrame(() => {
+      setWalkerCoords({ x: to.x, y: to.y });
+
+      setTimeout(() => {
+        setDealerState((prev) => (prev ? { ...prev, location: to.id } : prev));
+        setIsTraveling(false);
+
+        toast({
+          title: `Arrived at ${to.name}`,
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "top-right",
+          variant: "subtle",
+        });
+      }, 1400);
     });
-    console.log("Travel to", locationName);
   };
 
   return (
     <Flex direction="column" align="center" justify="center" w="full" h="full">
-      {/* World Map Image */}
+      {/* Map */}
       <Box
         w="full"
         h="full"
@@ -41,25 +81,78 @@ export default function MapPanel({ dealerState }: MapPanelProps) {
           draggable={false}
         />
 
-        {/* Location Buttons */}
+        {/* Dealer Icon */}
+        {walkerCoords && (
+          <Box
+            key={`walker-${animationKeyRef.current}`}
+            position="absolute"
+            top={`calc(${walkerCoords.y}% - 3%)`}
+            left={`${walkerCoords.x}%`}
+            transform="translate(-50%, -100%)"
+            transition="top 1.3s linear, left 1.3s linear"
+            zIndex={20}
+            w="46px"
+            h="46px"
+            animation={!isTraveling ? "float 2s ease-in-out infinite" : "none"}
+          >
+            <Image
+              src={icons.navigation.Traveling}
+              alt="Dealer Icon"
+              w="100%"
+              h="100%"
+              objectFit="contain"
+              draggable={false}
+            />
+          </Box>
+        )}
+
+        {/* Location Markers */}
         {locations.map((location) => (
-          <Button
+          <Box
             key={location.id}
             position="absolute"
             top={`${location.y}%`}
             left={`${location.x}%`}
             transform="translate(-50%, -50%)"
-            size="xs"
-            bg="blackAlpha.700"
-            color="white"
-            _hover={{ bg: "purple.600" }}
-            fontSize="xs"
-            onClick={() => handleTravel(location.name)}
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={1}
+            zIndex={10}
           >
-            {location.name}
-          </Button>
+            <Box
+              as="button"
+              w="12px"
+              h="12px"
+              borderRadius="full"
+              bg="white"
+              border="2px solid black"
+              cursor="pointer"
+              _hover={{ bg: "purple.400" }}
+              onClick={() => handleTravel(location.id)}
+            />
+            <Text
+              fontSize="xs"
+              color="white"
+              bg="blackAlpha.600"
+              px={1}
+              borderRadius="sm"
+              textAlign="center"
+              pointerEvents="none"
+            >
+              {location.name}
+            </Text>
+          </Box>
         ))}
       </Box>
+
+      <style>{`
+        @keyframes float {
+          0%   { transform: translate(-50%, -100%) translateY(0); }
+          50%  { transform: translate(-50%, -100%) translateY(-4px); }
+          100% { transform: translate(-50%, -100%) translateY(0); }
+        }
+      `}</style>
     </Flex>
   );
 }

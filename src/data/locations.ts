@@ -47,8 +47,8 @@ export const locations: Location[] = [
       "The vibrant beating heart of humankind. Bustling with trade, intrigue, and ambition.",
     biome: "City",
     dominantRace: "Human",
-    x: 50,
-    y: 70,
+    x: 36,
+    y: 40,
   },
   {
     id: "Sylvanglade",
@@ -57,8 +57,8 @@ export const locations: Location[] = [
       "Whispering woods where ancient elven cities rise among giant silver trees.",
     biome: "Forest",
     dominantRace: "Elf",
-    x: 20,
-    y: 30,
+    x: 26,
+    y: 26,
   },
   {
     id: "Ironroot Bastion",
@@ -67,8 +67,8 @@ export const locations: Location[] = [
       "Indomitable fortress-city carved into the roots of the Iron Mountains, home of Dwarves.",
     biome: "Mountain",
     dominantRace: "Dwarf",
-    x: 10,
-    y: 70,
+    x: 24,
+    y: 72,
   },
   {
     id: "Wretchgloom",
@@ -77,8 +77,8 @@ export const locations: Location[] = [
       "Foul labyrinthine caves crawling with goblin tribes and shady dealings.",
     biome: "Caves",
     dominantRace: "Goblin",
-    x: 15,
-    y: 85,
+    x: 24,
+    y: 86,
   },
   {
     id: "Bloodfang Steppes",
@@ -86,8 +86,8 @@ export const locations: Location[] = [
     description: "Vast war-torn plains ruled by Orc clans and primal rage.",
     biome: "Plains",
     dominantRace: "Orc",
-    x: 30,
-    y: 90,
+    x: 40,
+    y: 80,
   },
   {
     id: "Astral Spire",
@@ -96,8 +96,8 @@ export const locations: Location[] = [
       "A floating monolithic tower shimmering with pure arcane energies. Angelic domain.",
     biome: "Ruins",
     dominantRace: "Angel",
-    x: 75,
-    y: 20,
+    x: 71.5,
+    y: 25,
   },
   {
     id: "Shroomgrove",
@@ -106,8 +106,8 @@ export const locations: Location[] = [
       "A giant fungal jungle pulsating with life and dangerous spores, home of Lizardfolk.",
     biome: "Forest",
     dominantRace: "Lizardfolk",
-    x: 60,
-    y: 90,
+    x: 44,
+    y: 60,
   },
   {
     id: "Ashen Scar",
@@ -116,8 +116,8 @@ export const locations: Location[] = [
       "Charred wastelands left behind after ancient demonic wars. Smells of sulfur and death.",
     biome: "Wasteland",
     dominantRace: "Demon",
-    x: 45,
-    y: 15,
+    x: 56,
+    y: 43,
   },
   {
     id: "Deepforge Warrens",
@@ -126,8 +126,8 @@ export const locations: Location[] = [
       "Subterranean tunnels and halls where Golems and ancient engineers still dwell.",
     biome: "Mountain",
     dominantRace: "Golem",
-    x: 5,
-    y: 55,
+    x: 15,
+    y: 40,
   },
   {
     id: "Weeping Marshes",
@@ -136,8 +136,8 @@ export const locations: Location[] = [
       "Haunted wetlands shrouded in mist, where Vampires and lost souls stalk the night.",
     biome: "Swamp",
     dominantRace: "Vampire",
-    x: 40,
-    y: 50,
+    x: 66,
+    y: 48,
   },
   {
     id: "Duskmire Woods",
@@ -146,8 +146,8 @@ export const locations: Location[] = [
       "Darkened cursed forests howling with wolves and ancient terrors.",
     biome: "Forest",
     dominantRace: "Werewolf",
-    x: 25,
-    y: 60,
+    x: 60,
+    y: 66,
   },
   {
     id: "The Hollow Market",
@@ -156,8 +156,8 @@ export const locations: Location[] = [
       "Secret underground city of thieves, assassins, and forbidden magic traders.",
     biome: "Bazaar",
     dominantRace: undefined, // Neutral / Dark economy
-    x: 50,
-    y: 50,
+    x: 12,
+    y: 60,
   },
   {
     id: "Opal Shoals",
@@ -166,8 +166,8 @@ export const locations: Location[] = [
       "Iridescent beaches kissed by strange tides, where sirens lure the foolish.",
     biome: "Coast",
     dominantRace: undefined, // Neutral
-    x: 90,
-    y: 80,
+    x: 55,
+    y: 90,
   },
   {
     id: "Sunscorch Expanse",
@@ -176,8 +176,8 @@ export const locations: Location[] = [
       "Endless blazing deserts where reptilian tribes survive on bone and fire.",
     biome: "Plains",
     dominantRace: undefined, // Neutral desert
-    x: 65,
-    y: 70,
+    x: 60,
+    y: 78,
   },
   {
     id: "Crystal Rift",
@@ -186,7 +186,7 @@ export const locations: Location[] = [
       "A shattered canyon where crystals hum with forgotten magic. Treasure hunters' paradise.",
     biome: "Ruins",
     dominantRace: undefined,
-    x: 80,
-    y: 40,
+    x: 78,
+    y: 57,
   },
 ];
