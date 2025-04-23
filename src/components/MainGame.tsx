@@ -17,6 +17,7 @@ import MarketPanel from "@/components/MarketPanel";
 import StoragePanel from "@/components/StoragePanel";
 import PortalRevealOverlay from "@/components/PortalRevealOverlay";
 import DealerJournalPanel from "@/components/DealerJournalPanel";
+import MapPanel from "@/components/MapPanel"; // ✅ NEW MAPPANEL IMPORT
 
 import { useGameActions } from "@/hooks/useGameActions";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -29,7 +30,13 @@ interface MainGameProps {
   setDealerState: React.Dispatch<React.SetStateAction<DealerState | null>>;
 }
 
-type AppScreen = "dealer" | "marketplace" | "storage" | "dealerScrolls" | null;
+type AppScreen =
+  | "dealer"
+  | "marketplace"
+  | "storage"
+  | "dealerScrolls"
+  | "map"
+  | null;
 
 export default function MainGame({
   dealerState,
@@ -144,11 +151,7 @@ export default function MainGame({
                     }}
                   />
                 </Box>
-                <Heading
-                  size="md"
-                  color="gray.300"
-                  //fontFamily="'IM Fell English SC', serif"
-                >
+                <Heading size="md" color="gray.300">
                   Dealer Phone
                 </Heading>
               </Flex>
@@ -196,6 +199,11 @@ export default function MainGame({
                     icon={icons.app.Scroll}
                     onClick={() => setActiveApp("dealerScrolls")}
                   />
+                  <AppIcon
+                    label="World Map" // ✅ NEW WORLD MAP BUTTON
+                    icon={icons.navigation.Next}
+                    onClick={() => setActiveApp("map")}
+                  />
                 </SimpleGrid>
               ) : (
                 <Box position="relative">
@@ -210,7 +218,6 @@ export default function MainGame({
                     zIndex={10}
                     colorScheme="gray"
                   />
-
                   <Box mt={10}>
                     {activeApp === "dealer" && (
                       <DealerStatsPanel
@@ -242,6 +249,9 @@ export default function MainGame({
                     )}
                     {activeApp === "dealerScrolls" && (
                       <DealerJournalPanel dealerState={dealerState} />
+                    )}
+                    {activeApp === "map" && (
+                      <MapPanel dealerState={dealerState} />
                     )}
                   </Box>
                 </Box>
