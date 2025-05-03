@@ -1,4 +1,12 @@
-import { Box, Flex, Image, Text, useToast, Tooltip } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Image,
+  Text,
+  useToast,
+  Tooltip,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { locations } from "@/data/locations";
 import { DealerState } from "@/types/game";
@@ -24,7 +32,10 @@ export default function MapPanel({
   } | null>(null);
   const [duration, setDuration] = useState(1300);
 
-  // Set initial character position
+  const markerColor = useColorModeValue("black", "white");
+  const tooltipBg = useColorModeValue("gray.300", "gray.700");
+  const tooltipText = useColorModeValue("black", "white");
+
   useEffect(() => {
     const currentLoc = locations.find((l) => l.id === dealerState.location);
     if (currentLoc) {
@@ -82,6 +93,7 @@ export default function MapPanel({
             "December",
           ][dealerState.time.month]
         } ${dealerState.time.year}`;
+
         setDealerState((prev) =>
           prev
             ? {
@@ -135,7 +147,6 @@ export default function MapPanel({
           draggable={false}
         />
 
-        {/* Dealer Icon */}
         {walkerCoords && (
           <Box
             key={`walker-${animationKeyRef.current}`}
@@ -162,7 +173,6 @@ export default function MapPanel({
           </Box>
         )}
 
-        {/* Location Markers */}
         {locations.map((location) => {
           const from = locations.find((l) => l.id === dealerState.location);
           const dx = from ? location.x - from.x : 0;
@@ -187,8 +197,8 @@ export default function MapPanel({
                 label={`Travel cost: ${cost}$`}
                 placement="bottom"
                 hasArrow
-                bg="gray.700"
-                color="white"
+                bg={tooltipBg}
+                color={tooltipText}
                 fontSize="xs"
               >
                 <Box
@@ -196,8 +206,8 @@ export default function MapPanel({
                   w="12px"
                   h="12px"
                   borderRadius="full"
-                  bg="white"
-                  border="2px solid black"
+                  bg={markerColor}
+                  border="2px solid white"
                   cursor="pointer"
                   _hover={{ bg: "purple.400" }}
                   onClick={() => handleTravel(location.id)}

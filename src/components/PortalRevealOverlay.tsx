@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Box } from "@chakra-ui/react";
+import { Box, useColorModeValue } from "@chakra-ui/react";
 
 const MotionBox = motion(Box);
 
@@ -8,9 +8,11 @@ export default function PortalRevealOverlay() {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShow(false), 2000); // Hide after 2 seconds
+    const timer = setTimeout(() => setShow(false), 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  const bg = useColorModeValue("lightbrand.background", "brand.background");
 
   return (
     <AnimatePresence>
@@ -29,7 +31,7 @@ export default function PortalRevealOverlay() {
               "radial-gradient(circle at center, transparent 150%, black 151%)",
           }}
           transition={{ duration: 2, ease: "easeOut" }}
-          bg="black"
+          bg={bg}
           position="fixed"
           top="0"
           left="0"

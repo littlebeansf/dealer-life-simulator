@@ -1,6 +1,6 @@
 // src/components/DealerEntryPanel.tsx
 
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Text, useColorModeValue } from "@chakra-ui/react";
 import { JournalEntry } from "@/types/game";
 
 interface DealerEntryPanelProps {
@@ -8,9 +8,12 @@ interface DealerEntryPanelProps {
 }
 
 export default function DealerEntryPanel({ entry }: DealerEntryPanelProps) {
+  const bg = useColorModeValue("lightbrand.surface", "whiteAlpha.100");
+  const text = useColorModeValue("lightbrand.muted", "gray.400");
+
   return (
-    <Box p={3} bg="whiteAlpha.100" borderRadius="md" w="full">
-      <Text fontSize="sm" color="gray.400">
+    <Box p={3} bg={bg} borderRadius="md" w="full">
+      <Text fontSize="sm" color={text}>
         {entry.date} - {entry.text}
       </Text>
     </Box>

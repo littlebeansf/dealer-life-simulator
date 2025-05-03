@@ -6,6 +6,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { SettingsIcon } from "@chakra-ui/icons";
 import { DealerState } from "@/types/game";
@@ -15,6 +16,9 @@ interface SettingsMenuProps {
 }
 
 export default function SettingsMenu({ dealerState }: SettingsMenuProps) {
+  const menuBg = useColorModeValue("lightbrand.surface", "gray.800");
+  const menuColor = useColorModeValue("lightbrand.text", "white");
+
   return (
     <VStack spacing={1} align="end">
       <Menu>
@@ -26,7 +30,7 @@ export default function SettingsMenu({ dealerState }: SettingsMenuProps) {
           colorScheme="gray"
           aria-label="Settings"
         />
-        <MenuList>
+        <MenuList bg={menuBg} color={menuColor}>
           <MenuItem onClick={() => alert("Save Game coming soon!")}>
             Save Game
           </MenuItem>

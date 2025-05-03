@@ -1,4 +1,4 @@
-import { HStack, Input, Button } from "@chakra-ui/react";
+import { HStack, Input, Button, useColorModeValue } from "@chakra-ui/react";
 
 interface BuyControlsProps {
   productId: string;
@@ -17,6 +17,8 @@ export default function BuyControls({
   handleBuy,
   setBuyAmounts,
 }: BuyControlsProps) {
+  const inputBg = useColorModeValue("white", "gray.700");
+
   return (
     <HStack mt={3} spacing={2}>
       <Input
@@ -36,6 +38,7 @@ export default function BuyControls({
         }
         w="50px"
         textAlign="center"
+        bg={inputBg}
       />
       <Button
         size="xs"

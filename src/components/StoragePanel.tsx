@@ -11,6 +11,7 @@ import {
   HStack,
   Text,
   Heading,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
 import { products } from "@/data/products";
@@ -38,20 +39,23 @@ export default function StoragePanel({
     return (productA?.name || "").localeCompare(productB?.name || "");
   });
 
+  const bg = useColorModeValue("lightbrand.surface", "brand.surface");
+  const text = useColorModeValue("lightbrand.text", "brand.text");
+
   return (
-    <Box flex="1" bg="brand.surface" p={4} borderRadius="md" overflowY="auto">
-      <Heading size="md" color="brand.text" textAlign="center" mb={4}>
+    <Box flex="1" bg={bg} p={4} borderRadius="md" overflowY="auto">
+      <Heading size="md" color={text} textAlign="center" mb={4}>
         Your Storage
       </Heading>
 
-      <Table variant="simple" colorScheme="gray" size="sm">
+      <Table variant="simple" size="sm">
         <Thead>
           <Tr>
-            <Th color="brand.text">Product</Th>
-            <Th color="brand.text">Qty</Th>
-            <Th color="brand.text">Avg Buy</Th>
-            <Th color="brand.text">Sell Price</Th>
-            <Th color="brand.text">Sell</Th>
+            <Th color={text}>Product</Th>
+            <Th color={text}>Qty</Th>
+            <Th color={text}>Avg Buy</Th>
+            <Th color={text}>Sell Price</Th>
+            <Th color={text}>Sell</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -65,16 +69,16 @@ export default function StoragePanel({
 
             return (
               <Tr key={item.productId}>
-                <Td color="brand.text">
+                <Td color={text}>
                   <HStack spacing={2}>
                     <Box fontSize="lg">{product?.icon}</Box>
                     <Text fontSize="sm">{product?.name}</Text>
                   </HStack>
                 </Td>
 
-                <Td color="brand.text">{quantityOwned}</Td>
-                <Td color="brand.text">${avgBuyPrice}</Td>
-                <Td color="brand.text">${currentSellPrice}</Td>
+                <Td color={text}>{quantityOwned}</Td>
+                <Td color={text}>${avgBuyPrice}</Td>
+                <Td color={text}>${currentSellPrice}</Td>
 
                 <Td>
                   <Flex direction="column" align="center" gap={1}>
@@ -83,6 +87,7 @@ export default function StoragePanel({
                         size="xs"
                         onClick={() => handleSellAmount(item.productId, 1)}
                         isDisabled={quantityOwned < 1}
+                        variant="outline"
                       >
                         1
                       </Button>
@@ -90,6 +95,7 @@ export default function StoragePanel({
                         size="xs"
                         onClick={() => handleSellAmount(item.productId, 10)}
                         isDisabled={quantityOwned < 10}
+                        variant="outline"
                       >
                         10
                       </Button>
@@ -97,6 +103,7 @@ export default function StoragePanel({
                         size="xs"
                         onClick={() => handleSellAmount(item.productId, 100)}
                         isDisabled={quantityOwned < 100}
+                        variant="outline"
                       >
                         100
                       </Button>
@@ -105,7 +112,7 @@ export default function StoragePanel({
                     <Button
                       size="xs"
                       colorScheme="red"
-                      variant="outline"
+                      variant="solid"
                       onClick={() => handleSellAll(item.productId)}
                       isDisabled={quantityOwned <= 0}
                     >
@@ -118,10 +125,10 @@ export default function StoragePanel({
           })}
 
           <Tr>
-            <Td fontWeight="bold" color="brand.text">
+            <Td fontWeight="bold" color={text}>
               Total
             </Td>
-            <Td fontWeight="bold" color="brand.text" colSpan={4}>
+            <Td fontWeight="bold" color={text} colSpan={4}>
               {totalStorageValue}
             </Td>
           </Tr>

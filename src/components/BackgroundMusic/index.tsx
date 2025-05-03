@@ -31,9 +31,8 @@ export default function BackgroundMusic() {
   }, [hasInteracted]);
 
   return (
-    <audio ref={audioRef}>
+    <audio ref={audioRef} preload="auto">
       <source
-        // TODO: Mention: https://pixabay.com/users/guilhermebernardes-24203804/
         src={`${import.meta.env.BASE_URL}audio/maintrack.mp3`}
         type="audio/mpeg"
       />

@@ -6,6 +6,7 @@ import {
   Box,
   useColorMode,
   Button,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { icons } from "@/data/icons";
 
@@ -16,11 +17,15 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
-  //const { colorMode, toggleColorMode } = useColorMode();
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  const bg = useColorModeValue("lightbrand.surface", "brand.surface");
+  const textColor = useColorModeValue("lightbrand.heading", "brand.heading");
+  const subText = useColorModeValue("lightbrand.muted", "brand.muted");
 
   return (
     <Flex
-      bg="#2A2A2A"
+      bg={bg}
       p={4}
       align="center"
       justify="center"
@@ -29,13 +34,19 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
       borderRadius="md"
     >
       {/* Top: Game Title */}
-      <Text fontSize="2xl" fontWeight="bold" color="white" mb={2}>
+      <Text fontSize="2xl" fontWeight="bold" color={textColor} mb={2}>
         Dealer Life Simulator
       </Text>
 
       {/* Bottom: Next Month button + Month/Year Display */}
       <Flex align="center" gap={4}>
-        <Tooltip label="Next Month" hasArrow placement="top" bg="gray.600">
+        <Tooltip
+          label="Next Month"
+          hasArrow
+          placement="top"
+          bg={useColorModeValue("gray.300", "gray.600")}
+          color={useColorModeValue("black", "white")}
+        >
           <IconButton
             aria-label="Next Month"
             icon={
@@ -54,7 +65,14 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
             }
             size="lg"
             variant="solid"
-            colorScheme="gray"
+            bg={useColorModeValue("lightbrand.action", "brand.action")}
+            color={useColorModeValue("white", "black")}
+            _hover={{
+              bg: useColorModeValue("lightbrand.accent", "brand.accent"),
+            }}
+            _active={{
+              bg: useColorModeValue("lightbrand.surface", "brand.surface"),
+            }}
             p={6}
             onClick={onNextTurn}
           />
@@ -67,19 +85,21 @@ export default function TopBar({ onNextTurn, month, year }: TopBarProps) {
           minW="150px"
           px={2}
         >
-          <Text fontSize="lg" fontWeight="bold" color="white" noOfLines={1}>
+          <Text fontSize="lg" fontWeight="bold" color={textColor} noOfLines={1}>
             {month}
           </Text>
-          <Text fontSize="sm" color="gray.300">
+          <Text fontSize="sm" color={subText}>
             {year}
           </Text>
         </Flex>
       </Flex>
-      {/*<Flex align="right">
-        <Button onClick={toggleColorMode} size="sm" ml={4}>
-          {colorMode === "light" ? "🌙" : "🌞"}
+
+      {/* Theme Toggle Button */}
+      <Flex justify="flex-end" width="100%" mt={2}>
+        <Button onClick={toggleColorMode} size="sm" variant="ghost">
+          {colorMode === "light" ? "🌙 Dark Mode" : "🌞 Light Mode"}
         </Button>
-      </Flex>*/}
+      </Flex>
     </Flex>
   );
 }

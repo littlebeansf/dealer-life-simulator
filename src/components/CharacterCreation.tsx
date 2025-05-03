@@ -8,6 +8,7 @@ import {
   Box,
   Tooltip,
   Flex,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -90,21 +91,25 @@ export default function CharacterCreation({
 
   const selectedRaceInfo = races.find((r) => r.label === race);
 
+  const bg = useColorModeValue("lightbrand.background", "brand.background");
+  const surface = useColorModeValue("lightbrand.surface", "brand.surface");
+  const textPrimary = useColorModeValue("lightbrand.text", "brand.text");
+  const muted = useColorModeValue("lightbrand.muted", "gray.300");
+
   return (
     <MotionBox
       p={0}
       w="100vw"
       h="100vh"
-      bg="brand.background"
-      color="brand.text"
+      bg={bg}
+      color={textPrimary}
       display="flex"
       flexDirection="column"
       overflow="hidden"
-      //fontFamily="'IM Fell English SC', serif"
     >
       {/* Top Bar */}
-      <Flex bg="#2A2A2A" p={3} align="center" justify="center" flexShrink={0}>
-        <Heading size="xl" color="white">
+      <Flex bg={surface} p={3} align="center" justify="center" flexShrink={0}>
+        <Heading size="xl" color={textPrimary}>
           Dealer Life Simulator
         </Heading>
       </Flex>
@@ -128,16 +133,16 @@ export default function CharacterCreation({
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxW="280px"
-          bg="brand.surface"
+          bg={surface}
           borderColor="gray.600"
           fontSize="md"
-          _placeholder={{ color: "gray.400" }}
+          _placeholder={{ color: muted }}
         />
 
         {/* Lineage Picker */}
         <Box
           textAlign="center"
-          bg="brand.surface"
+          bg={surface}
           p={3}
           borderRadius="md"
           shadow="md"
@@ -169,9 +174,7 @@ export default function CharacterCreation({
                       ? "2px solid #9F7AEA"
                       : "1px solid transparent"
                   }
-                  _hover={{
-                    bg: race === r.label ? "purple.500" : "gray.600",
-                  }}
+                  _hover={{ bg: race === r.label ? "purple.500" : "gray.600" }}
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
@@ -198,7 +201,7 @@ export default function CharacterCreation({
             <MotionText
               mt={3}
               fontSize="md"
-              color="gray.300"
+              color={muted}
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -211,7 +214,7 @@ export default function CharacterCreation({
         {/* Gender Picker */}
         <Box
           textAlign="center"
-          bg="brand.surface"
+          bg={surface}
           p={3}
           borderRadius="md"
           shadow="md"
@@ -227,16 +230,13 @@ export default function CharacterCreation({
               <Button
                 key={g.label}
                 onClick={() => setGender(g.label as Gender)}
-                colorScheme={gender === g.label ? "purple" : "gray"}
                 size="md"
                 p={2}
                 w="80px"
                 h="80px"
                 borderRadius="full"
                 bg={gender === g.label ? "purple.600" : "gray.700"}
-                _hover={{
-                  bg: gender === g.label ? "purple.500" : "gray.600",
-                }}
+                _hover={{ bg: gender === g.label ? "purple.500" : "gray.600" }}
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
@@ -263,11 +263,10 @@ export default function CharacterCreation({
             ))}
           </HStack>
 
-          {/* Selected Gender Text */}
           <Text
             mt={3}
             fontSize="md"
-            color="gray.300"
+            color={muted}
             fontWeight="bold"
             textAlign="center"
           >

@@ -1,6 +1,6 @@
-import { Box, Flex, HStack } from "@chakra-ui/react";
+import { Box, Flex, HStack, useColorModeValue } from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
-import { raceImages } from "@/data/raceImages"; // <<- Now import the pixel images
+import { raceImages } from "@/data/raceImages";
 
 import DealerInfo from "./DealerInfo";
 import SettingsMenu from "./SettingsMenu";
@@ -11,10 +11,14 @@ interface DealerPanelProps {
 }
 
 export default function DealerPanel({ dealerState }: DealerPanelProps) {
+  const panelBg = useColorModeValue("lightbrand.surface", "brand.surface");
+  const textColor = useColorModeValue("lightbrand.text", "brand.text");
+  const avatarBg = useColorModeValue("gray.300", "gray.600");
+
   return (
     <Flex
       direction="column"
-      bg="brand.surface"
+      bg={panelBg}
       p={4}
       borderRadius="md"
       w="full"
@@ -24,24 +28,16 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
       flexShrink={0}
       gap={3}
     >
-      {/* Top Row */}
-      <Flex
-        w="100%"
-        direction="row"
-        align="center"
-        justify="space-between"
-        gap={3}
-      >
+      <Flex w="100%" align="center" justify="space-between" gap={3}>
         <Box
           boxSize="80px"
           borderRadius="full"
-          bg="gray.600"
+          bg={avatarBg}
           overflow="hidden"
           display="flex"
           alignItems="center"
           justifyContent="center"
         >
-          {/* Race Image */}
           {dealerState.race && (
             <img
               src={raceImages[dealerState.race] || "/assets/races/default.png"}
@@ -50,36 +46,30 @@ export default function DealerPanel({ dealerState }: DealerPanelProps) {
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
-                imageRendering: "pixelated", // important for pixel art
+                imageRendering: "pixelated",
               }}
             />
           )}
         </Box>
 
-        {/* Gold + Settings */}
         <SettingsMenu dealerState={dealerState} />
       </Flex>
 
-      {/* Dealer Name + Info */}
       <DealerInfo dealerState={dealerState} />
-
-      {/* Stat Bars */}
       <StatBars dealerState={dealerState} />
 
-      {/* Strength and Speed */}
       <HStack spacing={4} mt={4} flexWrap="wrap" justify="center">
         <HStack spacing={1}>
           <span role="img" aria-label="strength">
             💪
           </span>
-          <Box color="brand.text">{dealerState.stats.strength}</Box>
+          <Box color={textColor}>{dealerState.stats.strength}</Box>
         </HStack>
-
         <HStack spacing={1}>
           <span role="img" aria-label="speed">
             🏃
           </span>
-          <Box color="brand.text">{dealerState.stats.speed}</Box>
+          <Box color={textColor}>{dealerState.stats.speed}</Box>
         </HStack>
       </HStack>
     </Flex>

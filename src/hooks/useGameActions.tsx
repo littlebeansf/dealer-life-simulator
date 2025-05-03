@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useToast, Box } from "@chakra-ui/react";
+import { useToast, Box, useColorModeValue, Text, Flex } from "@chakra-ui/react";
 import { products } from "@/data/products";
 import {
   advanceTime,
@@ -42,36 +42,51 @@ export function useGameActions(
   }, []);
 
   useEffect(() => {
-    if (products.length > 0) {
-      const initialBuyAmounts: Record<string, number> = {};
-      products.forEach((product) => {
-        initialBuyAmounts[product.id] = defaultBuyAmount;
-      });
-      setBuyAmounts(initialBuyAmounts);
-    }
+    const initialBuyAmounts: Record<string, number> = {};
+    products.forEach((product) => {
+      initialBuyAmounts[product.id] = defaultBuyAmount;
+    });
+    setBuyAmounts(initialBuyAmounts);
   }, [defaultBuyAmount]);
+
+  const themedToastBox = (
+    icon: string,
+    title: string,
+    description: string,
+    bg: string
+  ) => (
+    <Box
+      p={3}
+      bg={bg}
+      borderRadius="md"
+      color={useColorModeValue("lightbrand.surface", "brand.surface")}
+    >
+      <Flex align="center" gap={2}>
+        <Box fontSize="2xl">{icon}</Box>
+        <Box>
+          <Text fontWeight="bold">{title}</Text>
+          <Text fontSize="sm">{description}</Text>
+        </Box>
+      </Flex>
+    </Box>
+  );
 
   const handleNextTurn = () => {
     const nextDealerState = advanceTime(dealerState);
-
-    const startingAge = 18;
     const startYear = 2025;
-    const startMonth = 3; // April = 3
+    const startMonth = 3;
+    const startingAge = 18;
 
-    const oldMonthsPassed =
-      (dealerState.time.year - startYear) * 12 +
-      (dealerState.time.month - startMonth);
-    const newMonthsPassed =
-      (nextDealerState.time.year - startYear) * 12 +
-      (nextDealerState.time.month - startMonth);
+    const monthsPassed = (s: DealerState) =>
+      (s.time.year - startYear) * 12 + (s.time.month - startMonth);
 
-    const oldAge = startingAge + Math.floor(oldMonthsPassed / 12);
-    const newAge = startingAge + Math.floor(newMonthsPassed / 12);
-
-    let newJournal = [...dealerState.journal];
+    const oldAge = startingAge + Math.floor(monthsPassed(dealerState) / 12);
+    const newAge = startingAge + Math.floor(monthsPassed(nextDealerState) / 12);
     const currentDate = `${monthNames[nextDealerState.time.month]} ${
       nextDealerState.time.year
     }`;
+
+    const newJournal = [...dealerState.journal];
 
     if (newAge > oldAge) {
       newJournal.push({
@@ -80,12 +95,16 @@ export function useGameActions(
       });
 
       toast({
-        title: "🎉 Happy Birthday!",
-        description: `You are now ${newAge} years old! 🧙‍♂️`,
-        status: "success",
         duration: 4000,
         isClosable: true,
         position: "top-left",
+        render: () =>
+          themedToastBox(
+            "🎉",
+            "Happy Birthday!",
+            `You are now ${newAge} years old!`,
+            "green.500"
+          ),
       });
     } else {
       newJournal.push({
@@ -94,12 +113,16 @@ export function useGameActions(
       });
 
       toast({
-        title: "Month Advanced",
-        description: `Welcome to ${currentDate}`,
-        status: "info",
         duration: 3000,
         isClosable: true,
         position: "top-left",
+        render: () =>
+          themedToastBox(
+            "⏳",
+            "Month Advanced",
+            `Welcome to ${currentDate}`,
+            "blue.500"
+          ),
       });
     }
 
@@ -117,33 +140,31 @@ export function useGameActions(
     const price = marketPrices[productId];
     const stock = marketStock[productId];
     const product = getProductById(productId);
-    if (!product || quantity > stock) return;
+    if (
+      !product ||
+      quantity > stock ||
+      dealerState.stats.gold < price * quantity
+    )
+      return;
 
     const totalPrice = price * quantity;
-    if (dealerState.stats.gold < totalPrice) return;
-
     const existingItem = dealerState.storage.find(
-      (item) => item.productId === product.id
+      (i) => i.productId === product.id
     );
-    let newStorage = [...dealerState.storage];
-
-    if (existingItem) {
-      newStorage = newStorage.map((item) =>
-        item.productId === product.id
-          ? {
-              ...item,
-              quantity: item.quantity + quantity,
-              totalSpent: item.totalSpent + totalPrice,
-            }
-          : item
-      );
-    } else {
-      newStorage.push({
-        productId: product.id,
-        quantity,
-        totalSpent: totalPrice,
-      });
-    }
+    const newStorage = existingItem
+      ? dealerState.storage.map((i) =>
+          i.productId === product.id
+            ? {
+                ...i,
+                quantity: i.quantity + quantity,
+                totalSpent: i.totalSpent + totalPrice,
+              }
+            : i
+        )
+      : [
+          ...dealerState.storage,
+          { productId: product.id, quantity, totalSpent: totalPrice },
+        ];
 
     const newJournal = [
       ...dealerState.journal,
@@ -171,45 +192,32 @@ export function useGameActions(
       duration: 3000,
       isClosable: true,
       position: "top-left",
-      render: () => (
-        <Box
-          p={3}
-          bg="red.500"
-          borderRadius="md"
-          color="white"
-          display="flex"
-          alignItems="center"
-          gap={2}
-        >
-          <Box fontSize="2xl">{product.icon}</Box>
-          <Box>
-            <strong>
-              Bought {quantity}x {product.name}
-            </strong>
-            <br />
-            Spent ${totalPrice}
-          </Box>
-        </Box>
-      ),
+      render: () =>
+        themedToastBox(
+          product.icon,
+          `Bought ${quantity}x ${product.name}`,
+          `Spent ${totalPrice} gold`,
+          "red.500"
+        ),
     });
   };
 
   const handleSellAmount = (productId: string, amount: number) => {
     const price = marketPrices[productId];
     const existingItem = dealerState.storage.find(
-      (item) => item.productId === productId
+      (i) => i.productId === productId
     );
     const product = getProductById(productId);
     if (!existingItem || existingItem.quantity <= 0 || !product) return;
 
     const sellAmount = Math.min(existingItem.quantity, amount);
     const newStorage = dealerState.storage
-      .map((item) =>
-        item.productId === productId
-          ? { ...item, quantity: item.quantity - sellAmount }
-          : item
+      .map((i) =>
+        i.productId === productId
+          ? { ...i, quantity: i.quantity - sellAmount }
+          : i
       )
-      .filter((item) => item.quantity > 0);
+      .filter((i) => i.quantity > 0);
 
     const newJournal = [
       ...dealerState.journal,
@@ -237,48 +245,31 @@ export function useGameActions(
       duration: 3000,
       isClosable: true,
       position: "top-left",
-      render: () => (
-        <Box
-          p={3}
-          bg="green.500"
-          borderRadius="md"
-          color="white"
-          display="flex"
-          alignItems="center"
-          gap={2}
-        >
-          <Box fontSize="2xl">{product.icon}</Box>
-          <Box>
-            <strong>
-              Sold {sellAmount}x {product.name}
-            </strong>
-            <br />
-            Gained ${price * sellAmount}
-          </Box>
-        </Box>
-      ),
+      render: () =>
+        themedToastBox(
+          product.icon,
+          `Sold ${sellAmount}x ${product.name}`,
+          `Gained ${price * sellAmount} gold`,
+          "green.500"
+        ),
     });
   };
 
   const handleSellAll = (productId: string) => {
     const price = marketPrices[productId];
     const existingItem = dealerState.storage.find(
-      (item) => item.productId === productId
+      (i) => i.productId === productId
     );
     const product = getProductById(productId);
     if (!existingItem || !product) return;
 
-    const newStorage = dealerState.storage.filter(
-      (item) => item.productId !== productId
-    );
+    const total = price * existingItem.quantity;
 
     const newJournal = [
       ...dealerState.journal,
       {
         date: `${monthNames[dealerState.time.month]} ${dealerState.time.year}`,
-        text: `${dealerState.name} sold ALL of their ${
-          product.name
-        } stash for ${price * existingItem.quantity} gold.`,
+        text: `${dealerState.name} sold ALL of their ${product.name} stash for ${total} gold.`,
       },
     ];
 
@@ -286,12 +277,11 @@ export function useGameActions(
       ...dealerState,
       stats: {
         ...dealerState.stats,
-        gold: dealerState.stats.gold + price * existingItem.quantity,
+        gold: dealerState.stats.gold + total,
         totalTrades: dealerState.stats.totalTrades + 1,
-        totalGoldEarned:
-          dealerState.stats.totalGoldEarned + price * existingItem.quantity,
+        totalGoldEarned: dealerState.stats.totalGoldEarned + total,
       },
-      storage: newStorage,
+      storage: dealerState.storage.filter((i) => i.productId !== productId),
       journal: newJournal,
     });
 
@@ -299,30 +289,19 @@ export function useGameActions(
       duration: 3000,
       isClosable: true,
       position: "top-left",
-      render: () => (
-        <Box
-          p={3}
-          bg="green.500"
-          borderRadius="md"
-          color="white"
-          display="flex"
-          alignItems="center"
-          gap={2}
-        >
-          <Box fontSize="2xl">{product.icon}</Box>
-          <Box>
-            <strong>Sold all {product.name}</strong>
-            <br />
-            Gained ${price * existingItem.quantity}
-          </Box>
-        </Box>
-      ),
+      render: () =>
+        themedToastBox(
+          product.icon,
+          `Sold all ${product.name}`,
+          `Gained ${total} gold`,
+          "green.500"
+        ),
     });
   };
 
   const totalStorageValue = dealerState.storage.reduce((sum, item) => {
-    const productPrice = marketPrices[item.productId] || 0;
-    return sum + productPrice * item.quantity;
+    const price = marketPrices[item.productId] || 0;
+    return sum + price * item.quantity;
   }, 0);
 
   return {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Box, VStack, Text } from "@chakra-ui/react";
+import { Button, Box, VStack, Text, useColorModeValue } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface StartScreenProps {
@@ -18,6 +18,11 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       onStart();
     }, 2000);
   };
+
+  const titleColor = useColorModeValue("lightbrand.heading", "brand.heading");
+  const buttonBg = useColorModeValue("whiteAlpha.900", "whiteAlpha.200");
+  const buttonHover = useColorModeValue("gray.100", "whiteAlpha.300");
+  const buttonText = useColorModeValue("black", "white");
 
   return (
     <MotionBox
@@ -38,9 +43,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       {/* Floating Title */}
       <MotionText
         initial={{ opacity: 1, y: 0 }}
-        animate={{
-          y: [0, -4, 0],
-        }}
+        animate={{ y: [0, -4, 0] }}
         transition={{
           duration: 4,
           repeat: Infinity,
@@ -48,7 +51,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
         }}
         fontSize={{ base: "4xl", md: "7xl" }}
         fontWeight="bold"
-        color="white"
+        color={titleColor}
         textAlign="center"
         mt={{ base: 40, md: 56 }}
         letterSpacing="wider"
@@ -72,18 +75,17 @@ export default function StartScreen({ onStart }: StartScreenProps) {
             fontSize={{ base: "2xl", md: "3xl" }}
             px={{ base: 12, md: 16 }}
             py={{ base: 7, md: 9 }}
-            bg="blackAlpha.700"
-            color="white"
+            bg={buttonBg}
+            color={buttonText}
             borderRadius="full"
             letterSpacing="wide"
-            boxShadow="none"
-            border="none"
-            _hover={{ bg: "blackAlpha.800" }}
+            boxShadow="md"
+            _hover={{ bg: buttonHover }}
             _focus={{ boxShadow: "none", borderColor: "transparent" }}
             _active={{
               boxShadow: "none",
               borderColor: "transparent",
-              bg: "blackAlpha.800",
+              bg: buttonHover,
             }}
             zIndex="10"
           >

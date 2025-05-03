@@ -5,6 +5,7 @@ import {
   SimpleGrid,
   Text,
   Heading,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { DealerState } from "@/types/game";
@@ -17,7 +18,7 @@ import MarketPanel from "@/components/MarketPanel";
 import StoragePanel from "@/components/StoragePanel";
 import PortalRevealOverlay from "@/components/PortalRevealOverlay";
 import DealerJournalPanel from "@/components/DealerJournalPanel";
-import MapPanel from "@/components/MapPanel"; // ✅ NEW MAPPANEL IMPORT
+import MapPanel from "@/components/MapPanel";
 
 import { useGameActions } from "@/hooks/useGameActions";
 import { CloseIcon } from "@chakra-ui/icons";
@@ -60,6 +61,9 @@ export default function MainGame({
 
   const animatedGold = useAnimatedNumber(dealerState.stats.gold);
 
+  const phoneFrame = useColorModeValue("gray.200", "gray.800");
+  const phoneInner = useColorModeValue("white", "black");
+
   return (
     <Flex
       direction="column"
@@ -67,7 +71,6 @@ export default function MainGame({
       bg="brand.background"
       position="relative"
     >
-      {/* Portal Reveal Animation */}
       <PortalRevealOverlay />
 
       <TopBar
@@ -91,7 +94,6 @@ export default function MainGame({
         year={dealerState.time.year}
       />
 
-      {/* Main Content */}
       <Flex
         direction={{ base: "column", md: "row" }}
         minW="100vw"
@@ -103,15 +105,13 @@ export default function MainGame({
         gap={6}
         p={4}
       >
-        {/* Left: Dealer Info */}
         <Box flexShrink={0}>
           <DealerPanel dealerState={dealerState} />
         </Box>
 
-        {/* Right: Dealer Phone */}
         <Flex
           direction="column"
-          bg="gray.800"
+          bg={phoneFrame}
           borderRadius="2xl"
           border="6px solid black"
           p={2}
@@ -121,20 +121,19 @@ export default function MainGame({
           flex="1"
           flexShrink={0}
         >
-          {/* Phone Screen */}
           <Flex
             direction="column"
-            bg="black"
+            bg={phoneInner}
             borderRadius="lg"
             flex="1"
             overflow="hidden"
           >
-            {/* Phone Header */}
             <Flex
               bg="brand.surface"
               borderTopRadius="lg"
               p={4}
-              borderBottom="1px solid #333"
+              borderBottom="1px solid"
+              borderColor={useColorModeValue("gray.300", "#333")}
               align="center"
               justify="space-between"
             >
@@ -151,7 +150,10 @@ export default function MainGame({
                     }}
                   />
                 </Box>
-                <Heading size="md" color="gray.300">
+                <Heading
+                  size="md"
+                  color={useColorModeValue("gray.100", "gray.300")}
+                >
                   Dealer Phone
                 </Heading>
               </Flex>
@@ -169,13 +171,12 @@ export default function MainGame({
                     }}
                   />
                 </Box>
-                <Text fontSize="x-large" color="yellow.300" fontWeight="bold">
+                <Text fontSize="x-large" color="yellow.400" fontWeight="bold">
                   {animatedGold}$
                 </Text>
               </Flex>
             </Flex>
 
-            {/* Content Area */}
             <Box flex="1" overflowY="auto" p={4}>
               {!activeApp ? (
                 <SimpleGrid columns={3} spacing={6}>
@@ -267,7 +268,6 @@ export default function MainGame({
   );
 }
 
-// App Icon Component
 function AppIcon({
   label,
   icon,
@@ -284,12 +284,15 @@ function AppIcon({
         onClick={onClick}
         w="80px"
         h="80px"
-        bg="whiteAlpha.300"
+        bg={useColorModeValue("whiteAlpha.800", "whiteAlpha.200")}
         borderRadius="xl"
         display="flex"
         alignItems="center"
         justifyContent="center"
-        _hover={{ bg: "gray.600", transform: "scale(1.05)" }}
+        _hover={{
+          bg: useColorModeValue("gray.200", "gray.600"),
+          transform: "scale(1.05)",
+        }}
         transition="all 0.2s"
       >
         <Box w="48px" h="48px">
@@ -308,7 +311,7 @@ function AppIcon({
       <Text
         mt={2}
         fontSize="md"
-        color="gray.300"
+        color={useColorModeValue("gray.700", "gray.300")}
         textAlign="center"
         fontWeight="bold"
       >

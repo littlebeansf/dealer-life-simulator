@@ -1,4 +1,4 @@
-import { Flex, Text } from "@chakra-ui/react";
+import { Flex, Text, useColorModeValue } from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
 
 interface MonthProgressProps {
@@ -21,9 +21,12 @@ export default function MonthProgress({ dealerState }: MonthProgressProps) {
     "December",
   ];
 
+  const bg = useColorModeValue("lightbrand.surface", "brand.surface");
+  const color = useColorModeValue("lightbrand.text", "brand.text");
+
   return (
-    <Flex align="center" justify="center" w="full" bg="brand.surface" p={2}>
-      <Text fontSize="md" color="white">
+    <Flex align="center" justify="center" w="full" bg={bg} p={2}>
+      <Text fontSize="md" color={color}>
         📅 {monthNames[dealerState.time.month]} {dealerState.time.year}
       </Text>
     </Flex>

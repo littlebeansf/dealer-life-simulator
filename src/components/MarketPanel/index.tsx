@@ -5,6 +5,7 @@ import {
   Button,
   Grid,
   useBreakpointValue,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { DealerState, Product } from "@/types/game";
 import ProductCard from "./ProductCard";
@@ -34,14 +35,16 @@ export default function MarketPanel({
 }: MarketPanelProps) {
   const isMobile = useBreakpointValue({ base: true, md: false });
 
-  // Filter products available at the current location
+  const bg = useColorModeValue("lightbrand.surface", "brand.surface");
+  const text = useColorModeValue("lightbrand.heading", "brand.text");
+
   const availableProducts = products.filter((product) =>
     product.availableAt.includes(dealerState.location)
   );
 
   return (
-    <Box flex="1" bg="brand.surface" p={4} borderRadius="md" overflow="hidden">
-      <Heading size="md" color="brand.text" textAlign="center" mb={4}>
+    <Box flex="1" bg={bg} p={4} borderRadius="md" overflow="hidden">
+      <Heading size="md" color={text} textAlign="center" mb={4}>
         Marketplace — {dealerState.location}
       </Heading>
 

@@ -1,4 +1,11 @@
-import { Flex, Text, HStack, Input, Button } from "@chakra-ui/react";
+import {
+  Flex,
+  Text,
+  HStack,
+  Input,
+  Button,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { Product } from "@/types/game";
 
 interface ProductCardProps {
@@ -20,13 +27,20 @@ export default function ProductCard({
   handleBuy,
   setBuyAmounts,
 }: ProductCardProps) {
+  const cardBg = useColorModeValue("lightbrand.surface", "gray.700");
+  const iconBg = useColorModeValue("gray.200", "gray.600");
+  const nameColor = useColorModeValue("lightbrand.heading", "brand.text");
+  const priceColor = useColorModeValue("lightbrand.text", "white");
+  const stockColor = useColorModeValue("gray.600", "gray.300");
+  const inputBg = useColorModeValue("white", "gray.600");
+
   return (
     <Flex
       direction="column"
       align="center"
       justify="space-between"
       p={3}
-      bg="gray.700"
+      bg={cardBg}
       borderRadius="md"
       minW="0"
       flexShrink={0}
@@ -34,7 +48,7 @@ export default function ProductCard({
     >
       <Flex
         borderRadius="full"
-        bg="gray.600"
+        bg={iconBg}
         boxSize="48px"
         align="center"
         justify="center"
@@ -44,7 +58,7 @@ export default function ProductCard({
       </Flex>
 
       <Text
-        color="brand.text"
+        color={nameColor}
         mt={3}
         fontSize="lg"
         fontWeight="extrabold"
@@ -54,15 +68,14 @@ export default function ProductCard({
         {product.name}
       </Text>
 
-      <Text fontSize="md" fontWeight="bold" color="white" mt={1}>
+      <Text fontSize="md" fontWeight="bold" color={priceColor} mt={1}>
         ${price}
       </Text>
 
-      <Text fontSize="xs" color="gray.300" lineHeight="1">
+      <Text fontSize="xs" color={stockColor} lineHeight="1">
         Stock: {stock}
       </Text>
 
-      {/* Buy Controls */}
       <HStack mt={3} spacing={2}>
         <Input
           type="number"
@@ -81,6 +94,7 @@ export default function ProductCard({
           }
           w="50px"
           textAlign="center"
+          bg={inputBg}
         />
         <Button
           size="xs"

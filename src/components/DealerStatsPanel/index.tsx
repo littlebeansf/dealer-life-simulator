@@ -1,6 +1,14 @@
 // src/components/DealerStatsPanel/index.tsx
 
-import { Box, Flex, Heading, Text, SimpleGrid, Badge } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  SimpleGrid,
+  Badge,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
 
 interface DealerStatsPanelProps {
@@ -13,16 +21,15 @@ export default function DealerStatsPanel({
   totalStorageValue,
 }: DealerStatsPanelProps) {
   const gold = dealerState.stats.gold;
-  const totalTrades = dealerState.stats.totalTrades || 0; // If missing, default to 0
+  const totalTrades = dealerState.stats.totalTrades || 0;
   const reputation = dealerState.stats.reputation ?? 0;
 
-  // 🛠 Correct months survived calculation
   const startYear = 2025;
-  const startMonth = 3; // April (0-indexed)
+  const startMonth = 3;
   const monthsSurvived =
     (dealerState.time.year - startYear) * 12 +
     (dealerState.time.month - startMonth) +
-    1; // +1 because April start counts as month 1
+    1;
 
   const favoriteProductId =
     dealerState.storage.sort((a, b) => b.quantity - a.quantity)[0]?.productId ||
@@ -38,10 +45,14 @@ export default function DealerStatsPanel({
 
   const dealerTitle = getRank(gold);
 
+  const panelBg = useColorModeValue("lightbrand.surface", "brand.surface");
+  const textColor = useColorModeValue("lightbrand.heading", "brand.text");
+  const quoteColor = useColorModeValue("lightbrand.muted", "gray.300");
+
   return (
-    <Box p={4} bg="brand.surface" borderRadius="md" minH="full">
+    <Box p={4} bg={panelBg} borderRadius="md" minH="full">
       <Flex direction="column" align="center" mb={6}>
-        <Heading size="lg" color="brand.text">
+        <Heading size="lg" color={textColor}>
           🧙 {dealerState.name || "Unknown Dealer"}
         </Heading>
         <Badge colorScheme="purple" fontSize="md" mt={2}>
@@ -59,7 +70,7 @@ export default function DealerStatsPanel({
       </SimpleGrid>
 
       <Box mt={8} textAlign="center">
-        <Text fontSize="lg" color="gray.300" fontStyle="italic">
+        <Text fontSize="lg" color={quoteColor} fontStyle="italic">
           "A rising star among the underground magic dealers."
         </Text>
       </Box>
@@ -68,18 +79,16 @@ export default function DealerStatsPanel({
 }
 
 function StatItem({ label, value }: { label: string; value: string | number }) {
+  const bg = useColorModeValue("gray.100", "gray.700");
+  const labelColor = useColorModeValue("gray.600", "gray.400");
+  const valueColor = useColorModeValue("lightbrand.text", "white");
+
   return (
-    <Box
-      p={4}
-      bg="gray.700"
-      borderRadius="md"
-      textAlign="center"
-      boxShadow="md"
-    >
-      <Text fontSize="sm" color="gray.400">
+    <Box p={4} bg={bg} borderRadius="md" textAlign="center" boxShadow="md">
+      <Text fontSize="sm" color={labelColor}>
         {label}
       </Text>
-      <Text fontSize="xl" fontWeight="bold" color="white" mt={1}>
+      <Text fontSize="xl" fontWeight="bold" color={valueColor} mt={1}>
         {value}
       </Text>
     </Box>

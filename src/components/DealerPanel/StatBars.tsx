@@ -1,4 +1,4 @@
-import { Box, Progress, Text, Flex } from "@chakra-ui/react";
+import { Box, Progress, Text, Flex, useColorModeValue } from "@chakra-ui/react";
 import { DealerState } from "@/types/game";
 import { icons } from "@/data/icons";
 
@@ -7,6 +7,8 @@ interface StatBarsProps {
 }
 
 export default function StatBars({ dealerState }: StatBarsProps) {
+  const labelColor = useColorModeValue("lightbrand.text", "brand.text");
+
   return (
     <Box mt={2} w="100%">
       {/* Life */}
@@ -23,7 +25,7 @@ export default function StatBars({ dealerState }: StatBarsProps) {
             }}
           />
         </Box>
-        <Text fontSize="sm" color="brand.text">
+        <Text fontSize="sm" color={labelColor}>
           Life
         </Text>
       </Flex>
@@ -48,7 +50,7 @@ export default function StatBars({ dealerState }: StatBarsProps) {
             }}
           />
         </Box>
-        <Text fontSize="sm" color="brand.text">
+        <Text fontSize="sm" color={labelColor}>
           Sanity
         </Text>
       </Flex>
