@@ -34,18 +34,23 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       bgRepeat="no-repeat"
       position="relative"
       overflow="hidden"
-      //fontFamily="'IM Fell English SC', serif"
     >
-      {/* Title */}
+      {/* Floating Title */}
       <MotionText
-        initial={{ opacity: 0, y: -40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.8, ease: "easeOut" }}
+        initial={{ opacity: 1, y: 0 }}
+        animate={{
+          y: [0, -4, 0],
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          repeatType: "loop",
+        }}
         fontSize={{ base: "4xl", md: "7xl" }}
         fontWeight="bold"
         color="white"
         textAlign="center"
-        mt={{ base: 20, md: 28 }}
+        mt={{ base: 40, md: 56 }}
         letterSpacing="wider"
         zIndex="10"
       >
@@ -71,23 +76,13 @@ export default function StartScreen({ onStart }: StartScreenProps) {
             color="white"
             borderRadius="full"
             letterSpacing="wide"
-            //fontFamily="'IM Fell English SC', serif"
             boxShadow="none"
             border="none"
-            _hover={{
-              bg: "blackAlpha.800",
-              boxShadow: "none",
-              border: "none",
-            }}
-            _focus={{
-              boxShadow: "none",
-              borderColor: "transparent",
-              border: "none",
-            }}
+            _hover={{ bg: "blackAlpha.800" }}
+            _focus={{ boxShadow: "none", borderColor: "transparent" }}
             _active={{
               boxShadow: "none",
               borderColor: "transparent",
-              border: "none",
               bg: "blackAlpha.800",
             }}
             zIndex="10"

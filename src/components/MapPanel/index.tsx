@@ -22,8 +22,9 @@ export default function MapPanel({
     x: number;
     y: number;
   } | null>(null);
+  const [duration, setDuration] = useState(1300);
 
-  // Update character coords initially and after travel completes
+  // Set initial character position
   useEffect(() => {
     const currentLoc = locations.find((l) => l.id === dealerState.location);
     if (currentLoc) {
@@ -42,7 +43,7 @@ export default function MapPanel({
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const duration = Math.max(1000, distance * 25);
+    const travelDuration = Math.max(1000, distance * 25);
     const travelCost = Math.floor(distance * 1.8);
 
     if (dealerState.stats.gold < travelCost) {
@@ -57,6 +58,7 @@ export default function MapPanel({
       return;
     }
 
+    setDuration(travelDuration);
     setIsTraveling(true);
     setWalkerCoords({ x: from.x, y: from.y });
 
@@ -64,41 +66,41 @@ export default function MapPanel({
       setWalkerCoords({ x: to.x, y: to.y });
 
       setTimeout(() => {
-        setDealerState((prev) => {
-          if (!prev) return prev;
-          const date = `${
-            [
-              "January",
-              "February",
-              "March",
-              "April",
-              "May",
-              "June",
-              "July",
-              "August",
-              "September",
-              "October",
-              "November",
-              "December",
-            ][prev.time.month]
-          } ${prev.time.year}`;
-
-          return {
-            ...prev,
-            location: to.id,
-            stats: {
-              ...prev.stats,
-              gold: prev.stats.gold - travelCost,
-            },
-            journal: [
-              ...prev.journal,
-              {
-                date,
-                text: `Traveled from ${from.name} to ${to.name} (-${travelCost}$)`,
-              },
-            ],
-          };
-        });
+        const date = `${
+          [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ][dealerState.time.month]
+        } ${dealerState.time.year}`;
+        setDealerState((prev) =>
+          prev
+            ? {
+                ...prev,
+                location: to.id,
+                stats: {
+                  ...prev.stats,
+                  gold: prev.stats.gold - travelCost,
+                },
+                journal: [
+                  ...prev.journal,
+                  {
+                    date,
+                    text: `Traveled from ${from.name} to ${to.name} (-${travelCost}$)`,
+                  },
+                ],
+              }
+            : prev
+        );
 
         setIsTraveling(false);
 
@@ -111,7 +113,7 @@ export default function MapPanel({
           position: "top-right",
           variant: "subtle",
         });
-      }, duration);
+      }, travelDuration);
     });
   };
 
@@ -133,7 +135,7 @@ export default function MapPanel({
           draggable={false}
         />
 
-        {/* Character Icon */}
+        {/* Dealer Icon */}
         {walkerCoords && (
           <Box
             key={`walker-${animationKeyRef.current}`}
@@ -141,7 +143,9 @@ export default function MapPanel({
             top={`calc(${walkerCoords.y}% - 3%)`}
             left={`${walkerCoords.x}%`}
             transform="translate(-50%, -100%)"
-            transition="top 1.3s linear, left 1.3s linear"
+            style={{
+              transition: `top ${duration}ms linear, left ${duration}ms linear`,
+            }}
             zIndex={20}
             w="46px"
             h="46px"
@@ -158,7 +162,7 @@ export default function MapPanel({
           </Box>
         )}
 
-        {/* Location Dots + Travel Cost Tooltip */}
+        {/* Location Markers */}
         {locations.map((location) => {
           const from = locations.find((l) => l.id === dealerState.location);
           const dx = from ? location.x - from.x : 0;
