@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* === DARK MODE (default) — dark fantasy pixel theme === */
+    --background: 220 15% 8%;
+    --foreground: 60 20% 85%;
+    --card: 220 15% 11%;
+    --card-foreground: 60 20% 85%;
+    --popover: 220 15% 11%;
+    --popover-foreground: 60 20% 85%;
+    --primary: 142 60% 45%;
+    --primary-foreground: 220 15% 8%;
+    --secondary: 220 15% 16%;
+    --secondary-foreground: 60 20% 75%;
+    --muted: 220 15% 14%;
+    --muted-foreground: 220 10% 55%;
+    --accent: 38 80% 50%;
+    --accent-foreground: 220 15% 8%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 60 20% 90%;
+    --border: 220 15% 18%;
+    --input: 220 15% 14%;
+    --ring: 142 60% 45%;
+    --radius: 0.375rem;
+    --chart-1: 142 60% 45%;
+    --chart-2: 38 80% 50%;
+    --chart-3: 270 60% 60%;
+    --chart-4: 0 70% 50%;
+    --chart-5: 200 70% 55%;
+  }
+
+  /* === LIGHT MODE — parchment / old map aesthetic === */
+  .light {
+    --background: 40 30% 94%;
+    --foreground: 220 25% 15%;
+    --card: 40 25% 89%;
+    --card-foreground: 220 25% 15%;
+    --popover: 40 25% 89%;
+    --popover-foreground: 220 25% 15%;
+    --primary: 142 55% 32%;
+    --primary-foreground: 40 30% 96%;
+    --secondary: 40 20% 82%;
+    --secondary-foreground: 220 20% 25%;
+    --muted: 40 20% 84%;
+    --muted-foreground: 220 12% 40%;
+    --accent: 30 70% 40%;
+    --accent-foreground: 40 30% 96%;
+    --destructive: 0 65% 42%;
+    --destructive-foreground: 40 30% 96%;
+    --border: 40 20% 72%;
+    --input: 40 20% 85%;
+    --ring: 142 55% 32%;
+    --chart-1: 142 55% 32%;
+    --chart-2: 30 70% 40%;
+    --chart-3: 270 50% 45%;
+    --chart-4: 0 65% 42%;
+    --chart-5: 200 60% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    image-rendering: pixelated;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* Pixel art UI helpers */
+.pixel-border {
+  border: 2px solid;
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.5);
+}
+
+.pixel-border-accent {
+  border: 2px solid hsl(var(--accent));
+  box-shadow: 2px 2px 0px 0px hsl(var(--accent) / 0.5);
+}
+
+.pixel-border-green {
+  border: 2px solid hsl(var(--primary));
+  box-shadow: 2px 2px 0px 0px hsl(var(--primary) / 0.5);
+}
+
+.pixel-border-red {
+  border: 2px solid hsl(var(--destructive));
+  box-shadow: 2px 2px 0px 0px hsl(var(--destructive) / 0.5);
+}
+
+.stat-bar {
+  height: 8px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: hsl(var(--card)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 0; }
+
+/* Pixel font */
+.pixel-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  line-height: 1.8;
+}
+
+.ui-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+}
+
+/* Location background gradients — dark mode */
+.loc-goblinland { background: linear-gradient(180deg, #1a2e1a 0%, #0d1a0d 100%); }
+.loc-elvenwood { background: linear-gradient(180deg, #1a2e2e 0%, #0d1a1a 100%); }
+.loc-dwarf_mines { background: linear-gradient(180deg, #2a1f10 0%, #1a1005 100%); }
+.loc-ghost_marsh { background: linear-gradient(180deg, #1a1a2e 0%, #0d0d1a 100%); }
+.loc-orc_warcamp { background: linear-gradient(180deg, #2e1a1a 0%, #1a0d0d 100%); }
+.loc-fairy_glade { background: linear-gradient(180deg, #2a1a2e 0%, #1a0d1a 100%); }
+.loc-vampire_court { background: linear-gradient(180deg, #1a0a0a 0%, #0d0505 100%); }
+.loc-golem_quarry { background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%); }
+.loc-dragon_peaks { background: linear-gradient(180deg, #2e1a0a 0%, #1a0d05 100%); }
+.loc-moonfang_wilds { background: linear-gradient(180deg, #1a1a2a 0%, #0d0d1a 100%); }
+
+/* Location background gradients — light mode (parchment-tinted) */
+.light .loc-goblinland { background: linear-gradient(180deg, #d4e8c4 0%, #c5dab4 100%); }
+.light .loc-elvenwood { background: linear-gradient(180deg, #c4ddd8 0%, #b2ccc7 100%); }
+.light .loc-dwarf_mines { background: linear-gradient(180deg, #e0caa8 0%, #cdb990 100%); }
+.light .loc-ghost_marsh { background: linear-gradient(180deg, #c8c8e8 0%, #b8b8d8 100%); }
+.light .loc-orc_warcamp { background: linear-gradient(180deg, #e8c4c4 0%, #d8b4b4 100%); }
+.light .loc-fairy_glade { background: linear-gradient(180deg, #dcc4e0 0%, #ccb4d0 100%); }
+.light .loc-vampire_court { background: linear-gradient(180deg, #e8b8b8 0%, #d8a8a8 100%); }
+.light .loc-golem_quarry { background: linear-gradient(180deg, #d8d8d0 0%, #c8c8c0 100%); }
+.light .loc-dragon_peaks { background: linear-gradient(180deg, #e8caa8 0%, #d8ba98 100%); }
+.light .loc-moonfang_wilds { background: linear-gradient(180deg, #c8c8e0 0%, #b8b8d0 100%); }
+
+/* Animations */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.blink { animation: blink 1s step-end infinite; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.2s ease forwards; }
+
+/* Theme transition */
+@keyframes themeFlash {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+.theme-transition { animation: themeFlash 0.15s ease forwards; }
+
+/* Event log entry */
+.log-entry {
+  border-left: 2px solid hsl(var(--border));
+  padding-left: 8px;
+  margin-bottom: 4px;
+}
+
+.log-entry.type-birth { border-left-color: hsl(60 80% 45%); }
+.log-entry.type-trade { border-left-color: hsl(var(--primary)); }
+.log-entry.type-travel { border-left-color: hsl(200 70% 45%); }
+.log-entry.type-event { border-left-color: hsl(var(--accent)); }
+.log-entry.type-relationship { border-left-color: hsl(300 60% 50%); }
+.log-entry.type-age_up { border-left-color: hsl(60 80% 45%); }
+.log-entry.type-death { border-left-color: hsl(var(--destructive)); }
+.log-entry.type-rumor { border-left-color: hsl(270 60% 55%); }
+.log-entry.type-activity { border-left-color: hsl(var(--primary)); }
+
+/* Mobile */
+@media (max-width: 640px) {
+  .pixel-text { font-size: 6px; }
+  .ui-text { font-size: 11px; }
+}
