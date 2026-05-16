@@ -53,7 +53,7 @@ export default function GameLayout({ gameState: gs, children, panelExtra }: Prop
                 <img
                   src={raceImg}
                   alt={race.name}
-                  className="w-8 h-8 object-cover rounded-sm border border-white/20 flex-shrink-0"
+                  className="w-8 h-8 object-contain flex-shrink-0" style={{imageRendering:"pixelated"}}
                   loading="eager"
                 />
               ) : null}

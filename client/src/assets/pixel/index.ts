@@ -1,9 +1,4 @@
-// Pixel art asset index — all imported as data URLs for zero extra HTTP requests
-
-// ─── Start Screen ────────────────────────────────────────────────────────────
-import startScreen from './start_screen.jpg';
-
-// ─── Location Backgrounds ────────────────────────────────────────────────────
+// Location backgrounds (JPEG)
 import locGoblinland from './loc_goblinland.jpg';
 import locElvenwood from './loc_elvenwood.jpg';
 import locDwarfMines from './loc_dwarf_mines.jpg';
@@ -15,33 +10,32 @@ import locGolemQuarry from './loc_golem_quarry.jpg';
 import locDragonPeaks from './loc_dragon_peaks.jpg';
 import locMoonfangWilds from './loc_moonfang_wilds.jpg';
 
-// ─── Item Icons ───────────────────────────────────────────────────────────────
-import itemMoonleaf from './item_moonleaf.jpg';
-import itemGoblinDust from './item_goblin_dust.jpg';
-import itemDreamSap from './item_dream_sap.jpg';
-import itemPixieSparks from './item_pixie_sparks.jpg';
-import itemDragonResin from './item_dragon_resin.jpg';
-import itemGhostMist from './item_ghost_mist.jpg';
-import itemOgreBrew from './item_ogre_brew.jpg';
-import itemWitchroot from './item_witchroot.jpg';
-import itemVampireAsh from './item_vampire_ash.jpg';
-import itemSirenTears from './item_siren_tears.jpg';
+// Start screen (JPEG)
+import startScreen from './start_screen.jpg';
 
-// ─── Race Portraits ──────────────────────────────────────────────────────────
-import raceGoblin from './race_goblin.jpg';
-import raceElf from './race_elf.jpg';
-import raceDwarf from './race_dwarf.jpg';
-import raceGolem from './race_golem.jpg';
-import raceGhost from './race_ghost.jpg';
-import raceOrc from './race_orc.jpg';
-import raceFairy from './race_fairy.jpg';
-import raceVampire from './race_vampire.jpg';
-import raceWerewolf from './race_werewolf.jpg';
-import raceDragonkin from './race_dragonkin.jpg';
+// Race sprites — transparent PNG (128×128)
+import raceGoblin from './race_goblin.png';
+import raceElf from './race_elf.png';
+import raceDwarf from './race_dwarf.png';
+import raceGolem from './race_golem.png';
+import raceGhost from './race_ghost.png';
+import raceOrc from './race_orc.png';
+import raceFairy from './race_fairy.png';
+import raceVampire from './race_vampire.png';
+import raceWerewolf from './race_werewolf.png';
+import raceDragonkin from './race_dragonkin.png';
 
-// ─── Exports ─────────────────────────────────────────────────────────────────
-
-export { startScreen };
+// Item sprites — transparent PNG (96×96)
+import itemMoonleaf from './item_moonleaf.png';
+import itemGoblinDust from './item_goblin_dust.png';
+import itemDreamSap from './item_dream_sap.png';
+import itemPixieSparks from './item_pixie_sparks.png';
+import itemDragonResin from './item_dragon_resin.png';
+import itemGhostMist from './item_ghost_mist.png';
+import itemOgreBrew from './item_ogre_brew.png';
+import itemWitchroot from './item_witchroot.png';
+import itemVampireAsh from './item_vampire_ash.png';
+import itemSirenTears from './item_siren_tears.png';
 
 export const LOCATION_IMAGES: Record<string, string> = {
   goblinland: locGoblinland,
@@ -54,6 +48,19 @@ export const LOCATION_IMAGES: Record<string, string> = {
   golem_quarry: locGolemQuarry,
   dragon_peaks: locDragonPeaks,
   moonfang_wilds: locMoonfangWilds,
+};
+
+export const RACE_IMAGES: Record<string, string> = {
+  goblin: raceGoblin,
+  elf: raceElf,
+  dwarf: raceDwarf,
+  golem: raceGolem,
+  ghost: raceGhost,
+  orc: raceOrc,
+  fairy: raceFairy,
+  vampire: raceVampire,
+  werewolf: raceWerewolf,
+  dragonkin: raceDragonkin,
 };
 
 export const ITEM_IMAGES: Record<string, string> = {
@@ -69,15 +76,4 @@ export const ITEM_IMAGES: Record<string, string> = {
   siren_tears: itemSirenTears,
 };
 
-export const RACE_IMAGES: Record<string, string> = {
-  goblin: raceGoblin,
-  elf: raceElf,
-  dwarf: raceDwarf,
-  golem: raceGolem,
-  ghost: raceGhost,
-  orc: raceOrc,
-  fairy: raceFairy,
-  vampire: raceVampire,
-  werewolf: raceWerewolf,
-  dragonkin: raceDragonkin,
-};
+export { startScreen };

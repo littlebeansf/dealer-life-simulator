@@ -105,7 +105,7 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
               {/* Compact row */}
               <div className="flex items-center gap-2 px-3 py-2">
                 {img && (
-                  <img src={img} alt={item.name} className="w-8 h-8 object-cover flex-shrink-0 rounded-sm" loading="lazy" />
+                  <img src={img} alt={item.name} className="w-8 h-8 object-contain flex-shrink-0" style={{imageRendering:"pixelated"}} loading="lazy" />
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
@@ -192,7 +192,7 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
                     onClick={() => setExpandedItem(expandedItem === id ? null : id)}
                     className="flex items-center gap-1 bg-card border border-border px-2 py-1 hover:border-accent/50 transition-all"
                   >
-                    {img && <img src={img} alt={ITEMS[id].name} className="w-5 h-5 object-cover rounded-sm" />}
+                    {img && <img src={img} alt={ITEMS[id].name} className="w-5 h-5 object-contain" style={{imageRendering:"pixelated"}} />}
                     <span className="text-[5px] text-accent ui-text">{price}g</span>
                     <span className="text-[5px] text-foreground ui-text">×{gs.inventory.items[id]}</span>
                   </button>

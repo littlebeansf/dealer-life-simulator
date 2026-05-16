@@ -96,7 +96,7 @@ export default function PeopleScreen({ gameState: gs, onNavigate, onSelectPerson
               >
                 <div className="flex items-center gap-2">
                   {raceImg ? (
-                    <img src={raceImg} alt={race.name} className="w-10 h-10 object-cover rounded-sm flex-shrink-0 border border-border" loading="lazy" />
+                    <img src={raceImg} alt={race.name} className="w-10 h-10 object-contain flex-shrink-0" style={{imageRendering:"pixelated"}} loading="lazy" />
                   ) : (
                     <span className="text-2xl flex-shrink-0">{person.emoji}</span>
                   )}

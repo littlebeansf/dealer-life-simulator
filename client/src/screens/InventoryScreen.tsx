@@ -72,7 +72,7 @@ export default function InventoryScreen({ gameState: gs, onNavigate }: Props) {
                   className="bg-card border border-border p-2 flex items-start gap-2"
                 >
                   {img ? (
-                    <img src={img} alt={item.name} className="w-10 h-10 object-cover flex-shrink-0 rounded-sm" loading="lazy" />
+                    <img src={img} alt={item.name} className="w-10 h-10 object-contain flex-shrink-0" style={{imageRendering:"pixelated"}} loading="lazy" />
                   ) : (
                     <span className="text-2xl flex-shrink-0">{item.emoji}</span>
                   )}

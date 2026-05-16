@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { GameState } from '../game/types';
 import { useTheme } from '../hooks/useTheme';
+import SettingsModal from './SettingsModal';
 
 interface Props {
   current: GameState['screen'];
@@ -18,41 +20,57 @@ const NAV_ITEMS: { id: GameState['screen']; label: string; emoji: string }[] = [
 
 export default function BottomNav({ current, onNavigate }: Props) {
   const { theme, toggle } = useTheme();
+  const [showSettings, setShowSettings] = useState(false);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-card border-t-2 border-border z-40">
-      <div className="flex">
-        {NAV_ITEMS.map(item => (
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-card border-t-2 border-border z-40">
+        <div className="flex">
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              data-testid={`nav-${item.id}`}
+              onClick={() => onNavigate(item.id)}
+              className={`flex-1 flex flex-col items-center py-2 px-0.5 transition-colors text-center ${
+                current === item.id
+                  ? 'bg-primary/20 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              <span className="text-sm leading-none mb-0.5">{item.emoji}</span>
+              <span className="text-[5px] leading-none font-bold uppercase tracking-wide" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+                {item.label}
+              </span>
+            </button>
+          ))}
+          {/* Theme toggle */}
           <button
-            key={item.id}
-            data-testid={`nav-${item.id}`}
-            onClick={() => onNavigate(item.id)}
-            className={`flex-1 flex flex-col items-center py-2 px-0.5 transition-colors text-center ${
-              current === item.id
-                ? 'bg-primary/20 text-primary'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-            }`}
+            data-testid="btn-theme-toggle-nav"
+            onClick={toggle}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            className="flex flex-col items-center py-2 px-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            style={{ minWidth: '32px' }}
           >
-            <span className="text-sm leading-none mb-0.5">{item.emoji}</span>
-            <span className="text-[5px] leading-none font-bold uppercase tracking-wide" style={{ fontFamily: 'Press Start 2P, monospace' }}>
-              {item.label}
+            <span className="text-sm leading-none mb-0.5">{theme === 'dark' ? '☀️' : '🌙'}</span>
+            <span className="text-[4px] leading-none font-bold uppercase tracking-wide" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+              {theme === 'dark' ? 'Lite' : 'Dark'}
             </span>
           </button>
-        ))}
-        {/* Theme toggle */}
-        <button
-          data-testid="btn-theme-toggle-nav"
-          onClick={toggle}
-          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          className="flex flex-col items-center py-2 px-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-          style={{ minWidth: '36px' }}
-        >
-          <span className="text-sm leading-none mb-0.5">{theme === 'dark' ? '☀️' : '🌙'}</span>
-          <span className="text-[4px] leading-none font-bold uppercase tracking-wide" style={{ fontFamily: 'Press Start 2P, monospace' }}>
-            {theme === 'dark' ? 'Light' : 'Dark'}
-          </span>
-        </button>
-      </div>
-    </nav>
+          {/* Settings */}
+          <button
+            data-testid="btn-nav-settings"
+            onClick={() => setShowSettings(true)}
+            className="flex flex-col items-center py-2 px-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            style={{ minWidth: '32px' }}
+          >
+            <span className="text-sm leading-none mb-0.5">⚙️</span>
+            <span className="text-[4px] leading-none font-bold uppercase tracking-wide" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+              SET
+            </span>
+          </button>
+        </div>
+      </nav>
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+    </>
   );
 }

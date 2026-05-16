@@ -82,7 +82,7 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
         </button>
         <div className="flex items-center gap-3">
           {raceImg ? (
-            <img src={raceImg} alt={race.name} className="w-14 h-14 object-cover rounded-sm border border-border flex-shrink-0" loading="lazy" />
+            <img src={raceImg} alt={race.name} className="w-14 h-14 object-contain flex-shrink-0" style={{imageRendering:"pixelated"}} loading="lazy" />
           ) : (
             <span className="text-4xl">{person.emoji}</span>
           )}

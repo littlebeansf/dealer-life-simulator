@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { startScreen } from '../assets/pixel';
-import ThemeToggle from '../components/ThemeToggle';
+import { useAudio } from '../hooks/useAudio';
+import SettingsModal from '../components/SettingsModal';
 
 interface Props {
   hasSave: boolean;
@@ -11,6 +13,9 @@ interface Props {
 const PX = { fontFamily: 'Press Start 2P, monospace' };
 
 export default function MainMenuScreen({ hasSave, onNewGame, onContinue, onDeleteSave }: Props) {
+  const [showSettings, setShowSettings] = useState(false);
+  const { musicEnabled, toggleMusic } = useAudio();
+
   return (
     <div className="relative h-screen flex flex-col items-center justify-end overflow-hidden">
       {/* Full-screen pixel art background */}
@@ -19,13 +24,31 @@ export default function MainMenuScreen({ hasSave, onNewGame, onContinue, onDelet
         alt="Dealer Life Simulator"
         className="absolute inset-0 w-full h-full object-cover"
         loading="eager"
+        style={{ objectPosition: 'center top' }}
       />
-      {/* Gradient overlay: darken bottom for UI */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/20" />
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/10" />
 
-      {/* Theme toggle — top right */}
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
+      {/* Top-right controls */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        {/* Music quick-toggle */}
+        <button
+          data-testid="btn-music-toggle"
+          onClick={toggleMusic}
+          title={musicEnabled ? 'Mute music' : 'Enable music'}
+          className="w-8 h-8 flex items-center justify-center border border-white/20 bg-black/40 hover:bg-black/60 transition-colors text-sm"
+        >
+          {musicEnabled ? '🎵' : '🔇'}
+        </button>
+        {/* Settings */}
+        <button
+          data-testid="btn-settings"
+          onClick={() => setShowSettings(true)}
+          className="w-8 h-8 flex items-center justify-center border border-white/20 bg-black/40 hover:bg-black/60 transition-colors text-sm"
+          title="Settings"
+        >
+          ⚙️
+        </button>
       </div>
 
       {/* Content */}
@@ -77,12 +100,22 @@ export default function MainMenuScreen({ hasSave, onNewGame, onContinue, onDelet
               🗑 DELETE SAVE
             </button>
           )}
+          {/* Settings button (bottom) */}
+          <button
+            onClick={() => setShowSettings(true)}
+            className="w-full py-2 px-4 border border-white/10 bg-white/5 text-white/40 text-[7px] hover:bg-white/10 hover:text-white/60 transition-colors"
+            style={PX}
+          >
+            ⚙ SETTINGS
+          </button>
         </div>
 
         <p className="text-center text-[5px] text-white/30 mt-6" style={PX}>
           Buy low. Sell high. Don't get caught.
         </p>
       </div>
+
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
