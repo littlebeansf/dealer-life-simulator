@@ -651,11 +651,11 @@ export function ageUp(state: GameState): GameState {
 
   // Age effects
   let healthChange = -2; // aging
-  let staminaChange = -1;
+  // Stamina recovers each year (rest, reset) but worsens with age
+  let staminaChange = newAge > 60 ? 8 : 15; // net stamina boost on year advance
 
   if (newAge > 60) {
     healthChange -= 3;
-    staminaChange -= 2;
   }
 
   // Heat cools down
@@ -737,92 +737,334 @@ export function doPersonAction(state: GameState, personId: string, action: strin
   let logText = '';
   let logEmoji = '👥';
 
+  // Helper: clamp person meters
+  const clampPerson = (field: 'relationship' | 'trust' | 'fear' | 'respect', delta: number) => {
+    if (field === 'relationship') p.relationship = Math.max(-100, Math.min(100, p.relationship + delta));
+    else if (field === 'trust') p.trust = Math.max(0, Math.min(100, p.trust + delta));
+    else if (field === 'fear') p.fear = Math.max(0, Math.min(100, p.fear + delta));
+    else if (field === 'respect') p.respect = Math.max(0, Math.min(100, p.respect + delta));
+  };
+  // Helper: adjust player stats safely
+  const adjPlayer = (field: 'money' | 'health' | 'stamina' | 'heat', delta: number) => {
+    if (field === 'money') s.player = { ...s.player, money: Math.max(0, s.player.money + delta) };
+    else if (field === 'health') s.player = { ...s.player, health: Math.max(0, Math.min(100, s.player.health + delta)) };
+    else if (field === 'stamina') s.player = { ...s.player, stamina: Math.max(0, Math.min(100, s.player.stamina + delta)) };
+    else if (field === 'heat') s.player = { ...s.player, heat: Math.max(0, Math.min(100, s.player.heat + delta)) };
+  };
+  // Helper: adjust player public rep
+  const adjPubRep = (delta: number) => {
+    const newPub = Math.max(-100, Math.min(100, s.player.reputation.public + delta));
+    s.player = { ...s.player, reputation: { ...s.player.reputation, public: newPub, publicLabel: getPublicRepLabel(newPub) } };
+  };
+  // Helper: adjust underworld rep
+  const adjUWRep = (delta: number) => {
+    const newUW = Math.max(0, Math.min(100, s.player.reputation.underworld + delta));
+    s.player = { ...s.player, reputation: { ...s.player.reputation, underworld: newUW } };
+  };
+  // Helper: adjust fear rep
+  const adjFearRep = (delta: number) => {
+    const newFear = Math.max(0, Math.min(100, s.player.reputation.fear + delta));
+    s.player = { ...s.player, reputation: { ...s.player.reputation, fear: newFear } };
+  };
+  // Helper: add memory
+  const addMem = (desc: string) => {
+    p.memories = [{ age: s.player.age, description: desc }, ...p.memories].slice(0, 10);
+  };
+
   switch (action) {
+
+    // ── SOCIAL ────────────────────────────────────────────────────────────────
+    case 'talk':
+      clampPerson('relationship', rand(1, 4));
+      clampPerson('trust', rand(0, 2));
+      adjPlayer('stamina', -1);
+      logText = `You had a casual conversation with ${p.name}. Nothing major, but bonds strengthen slowly.`;
+      logEmoji = '💬';
+      break;
+
     case 'compliment':
-      p.relationship = Math.min(100, p.relationship + rand(3, 8));
-      p.trust = Math.min(100, p.trust + rand(1, 4));
-      logText = `You complimented ${p.name}. They seemed pleased.`;
+      clampPerson('relationship', rand(4, 9));
+      clampPerson('trust', rand(2, 5));
+      clampPerson('respect', rand(1, 4));
+      adjPlayer('stamina', -1);
+      // Charisma bonus
+      if (s.player.stats.charisma >= 7) {
+        clampPerson('relationship', rand(2, 4));
+      }
+      logText = `You complimented ${p.name} — they seemed genuinely pleased. Relationship improved.`;
+      logEmoji = '😊';
       break;
-    case 'insult':
-      p.relationship = Math.max(-100, p.relationship - rand(8, 15));
-      p.fear = Math.min(100, p.fear + rand(0, 5));
-      logText = `You insulted ${p.name}. They'll remember that.`;
-      p.memories = [{ age: s.player.age, description: 'You insulted me in public.' }, ...p.memories].slice(0, 10);
-      logEmoji = '😤';
+
+    case 'apologize':
+      clampPerson('relationship', rand(5, 10));
+      clampPerson('trust', rand(2, 6));
+      clampPerson('fear', -rand(2, 5));
+      logText = `You apologized to ${p.name}. The tension between you eased.`;
+      logEmoji = '🙏';
+      addMem('You apologized sincerely.');
       break;
+
+    case 'share_rumor': {
+      const sharedRumor = generateRumor();
+      clampPerson('trust', rand(4, 8));
+      clampPerson('relationship', rand(2, 5));
+      adjPubRep(1);
+      s.rumors = [sharedRumor, ...(s.rumors ?? [])].slice(0, 5);
+      logText = `You shared a rumor with ${p.name}: "${sharedRumor}". They appreciated the info.`;
+      logEmoji = '🗣️';
+      addMem('You shared useful information with me.');
+      break;
+    }
+
     case 'give_gift':
       if (s.player.money >= 25) {
-        s.player = { ...s.player, money: s.player.money - 25 };
-        p.relationship = Math.min(100, p.relationship + rand(8, 15));
-        p.trust = Math.min(100, p.trust + rand(3, 8));
-        logText = `You gave ${p.name} a gift worth 25 gold. They're touched.`;
-        p.memories = [{ age: s.player.age, description: 'You gave me a generous gift.' }, ...p.memories].slice(0, 10);
+        adjPlayer('money', -25);
+        clampPerson('relationship', rand(10, 18));
+        clampPerson('trust', rand(5, 10));
+        clampPerson('respect', rand(3, 7));
+        logText = `You gave ${p.name} a gift worth 25 gold. They were visibly moved.`;
         logEmoji = '🎁';
+        addMem('You gave me a generous gift.');
       } else {
-        logText = 'Not enough gold to give a gift.';
+        logText = `Not enough gold to give a gift. (25g needed)`;
       }
       break;
-    case 'threaten':
-      p.fear = Math.min(100, p.fear + rand(10, 20));
-      p.relationship = Math.max(-100, p.relationship - rand(5, 10));
-      s.player = {
-        ...s.player,
-        reputation: {
-          ...s.player.reputation,
-          fear: Math.min(100, s.player.reputation.fear + 3),
-          public: Math.max(-100, s.player.reputation.public - 3),
-          publicLabel: getPublicRepLabel(s.player.reputation.public - 3),
-          underworldRank: s.player.reputation.underworldRank,
-        },
-      };
-      logText = `You threatened ${p.name}. Fear rose. Your public reputation suffered.`;
-      p.memories = [{ age: s.player.age, description: 'You threatened me.' }, ...p.memories].slice(0, 10);
-      logEmoji = '😠';
-      break;
+
     case 'ask_rumor':
       if (p.trust >= 40) {
         const rumor = generateRumor();
         s.rumors = [rumor, ...(s.rumors ?? [])].slice(0, 5);
         s.eventLog = [
-          {
-            id: `rumor_${Date.now()}`,
-            age: s.player.age,
-            text: `${p.name} whispers: "${rumor}"`,
-            type: 'rumor',
-            emoji: '👂',
-          },
+          { id: `rumor_${Date.now()}`, age: s.player.age, text: `${p.name} whispers: "${rumor}"`, type: 'rumor', emoji: '👂' },
           ...s.eventLog,
         ];
-        logText = `${p.name} shared a market rumor with you.`;
+        adjPlayer('stamina', -1);
+        logText = `${p.name} whispered a rumor: "${rumor}"`;
+        logEmoji = '👂';
       } else {
-        logText = `${p.name} doesn't trust you enough to share rumors.`;
+        logText = `${p.name} doesn't trust you enough to share rumors yet.`;
       }
       break;
+
+    // ── ROMANCE ───────────────────────────────────────────────────────────────
+    case 'flirt': {
+      const charm = s.player.stats.charisma;
+      const success = chance(0.3 + charm * 0.05);
+      if (success) {
+        clampPerson('relationship', rand(5, 12));
+        clampPerson('trust', rand(1, 4));
+        adjPlayer('stamina', -2);
+        logText = `You flirted with ${p.name} — it landed well. A spark ignited.`;
+      } else {
+        clampPerson('relationship', -rand(3, 7));
+        adjPlayer('stamina', -2);
+        logText = `Your flirting with ${p.name} fell flat. They looked unimpressed.`;
+      }
+      logEmoji = '😍';
+      break;
+    }
+
+    case 'go_drink':
+      if (s.player.money >= 15) {
+        adjPlayer('money', -15);
+        adjPlayer('stamina', -rand(5, 10));
+        adjPlayer('health', -rand(1, 3));
+        adjPlayer('heat', -rand(3, 6));
+        clampPerson('relationship', rand(8, 15));
+        clampPerson('trust', rand(3, 8));
+        clampPerson('fear', -rand(2, 5));
+        logText = `You shared drinks with ${p.name}. Inhibitions lowered, bonds deepened. Heat cooled.`;
+        logEmoji = '🍺';
+        addMem('We drank together. It was a good night.');
+      } else {
+        logText = `Not enough gold to buy drinks. (15g needed)`;
+      }
+      break;
+
+    case 'make_love':
+      if (p.relationship >= 60) {
+        adjPlayer('health', rand(3, 8));
+        adjPlayer('stamina', -rand(10, 20));
+        clampPerson('relationship', rand(12, 22));
+        clampPerson('trust', rand(8, 15));
+        clampPerson('fear', -rand(5, 10));
+        clampPerson('respect', rand(5, 10));
+        logText = `An intimate moment with ${p.name}. Your bond deepened profoundly.`;
+        logEmoji = '❤️';
+        addMem('We shared an intimate moment together.');
+        // Chance to shift role to lover
+        if (p.relationship >= 75 && p.role !== 'lover') {
+          p.role = 'lover';
+          p.statusLabels = [...new Set([...p.statusLabels, 'Lover' as const])];
+        }
+      } else {
+        logText = `${p.name} isn't close enough for that. Build more relationship first.`;
+      }
+      break;
+
+    case 'propose_partnership':
+      if (p.trust >= 60) {
+        clampPerson('respect', rand(10, 20));
+        clampPerson('relationship', rand(5, 12));
+        adjPubRep(rand(2, 5));
+        adjUWRep(rand(3, 7));
+        logText = `${p.name} agreed to a business partnership. Your combined reputation grows.`;
+        logEmoji = '🤝';
+        addMem('We became business partners.');
+        p.statusLabels = [...new Set([...p.statusLabels, 'Business Partner' as const])];
+      } else {
+        logText = `${p.name} doesn't trust you enough for a partnership yet.`;
+      }
+      break;
+
+    // ── BUSINESS ──────────────────────────────────────────────────────────────
     case 'bribe':
       if (s.player.money >= 30) {
-        s.player = { ...s.player, money: s.player.money - 30 };
-        if (chance(0.7)) {
-          p.relationship = Math.min(100, p.relationship + rand(5, 12));
-          logText = `You bribed ${p.name}. The gold worked.`;
+        adjPlayer('money', -30);
+        adjPlayer('heat', -rand(3, 8));
+        if (chance(0.65)) {
+          clampPerson('relationship', rand(6, 14));
+          clampPerson('trust', rand(2, 5));
+          logText = `You bribed ${p.name}. The gold worked — their attitude shifted.`;
           logEmoji = '💰';
         } else {
-          p.relationship = Math.max(-100, p.relationship - rand(5, 10));
-          logText = `${p.name} was offended by your bribe attempt.`;
+          clampPerson('relationship', -rand(6, 12));
+          clampPerson('trust', -rand(5, 10));
+          adjPlayer('heat', rand(3, 6));
+          logText = `${p.name} was offended by your bribe attempt. Things got worse.`;
         }
-        p.memories = [{ age: s.player.age, description: 'You tried to bribe me.' }, ...p.memories].slice(0, 10);
+        addMem('You tried to bribe me.');
       } else {
-        logText = 'Not enough gold to bribe.';
+        logText = `Not enough gold to bribe. (30g needed)`;
       }
       break;
-    case 'apologize':
-      p.relationship = Math.min(100, p.relationship + rand(4, 8));
-      p.trust = Math.min(100, p.trust + rand(2, 5));
-      logText = `You apologized to ${p.name}. They seemed to accept it.`;
+
+    case 'loan_gold':
+      if (s.player.money >= 50) {
+        adjPlayer('money', -50);
+        p.debtToPlayer = (p.debtToPlayer ?? 0) + 50;
+        clampPerson('relationship', rand(8, 15));
+        clampPerson('trust', rand(5, 10));
+        logText = `You loaned ${p.name} 50 gold. They owe you now — collect when the time is right.`;
+        logEmoji = '🏦';
+        addMem('You lent me 50 gold when I needed it.');
+      } else {
+        logText = `Not enough gold to loan. (50g needed)`;
+      }
       break;
-    case 'talk':
+
+    case 'collect_debt':
+      if (p.debtToPlayer > 0) {
+        const debt = p.debtToPlayer;
+        if (chance(0.75)) {
+          adjPlayer('money', debt);
+          p.debtToPlayer = 0;
+          clampPerson('trust', -rand(3, 7));
+          clampPerson('relationship', -rand(2, 5));
+          logText = `${p.name} paid back their debt of ${debt}g. They seemed relieved but slightly resentful.`;
+          logEmoji = '💸';
+          addMem('I repaid my debt to you.');
+        } else {
+          // Can't pay
+          clampPerson('relationship', -rand(5, 10));
+          clampPerson('trust', -rand(5, 10));
+          logText = `${p.name} can't pay right now. They're embarrassed and your relationship strained.`;
+          logEmoji = '💸';
+          addMem('I failed to repay my debt. Shameful.');
+        }
+      } else {
+        logText = `${p.name} doesn't owe you anything.`;
+      }
+      break;
+
+    case 'extort':
+      if (p.fear >= 30) {
+        const extracted = rand(15, 40);
+        adjPlayer('money', extracted);
+        adjPlayer('heat', rand(5, 10));
+        clampPerson('fear', rand(5, 12));
+        clampPerson('relationship', -rand(10, 18));
+        clampPerson('trust', -rand(8, 15));
+        adjPubRep(-rand(3, 6));
+        adjFearRep(rand(5, 10));
+        logText = `You extorted ${extracted}g from ${p.name}. Heat rose. They'll never forget this.`;
+        logEmoji = '🗡️';
+        addMem('You extorted me. I will not forget this.');
+      } else {
+        logText = `${p.name} isn't afraid of you enough to extort. (Fear < 30)`;
+      }
+      break;
+
+    // ── CONFLICT ──────────────────────────────────────────────────────────────
+    case 'insult':
+      clampPerson('relationship', -rand(8, 15));
+      clampPerson('trust', -rand(5, 10));
+      clampPerson('fear', rand(0, 4));
+      adjPubRep(-rand(1, 3));
+      adjPlayer('stamina', -2);
+      logText = `You insulted ${p.name}. They glared at you. Relations are strained.`;
+      logEmoji = '😤';
+      addMem('You insulted me in front of others.');
+      break;
+
+    case 'threaten':
+      clampPerson('fear', rand(12, 22));
+      clampPerson('relationship', -rand(6, 12));
+      clampPerson('trust', -rand(5, 10));
+      adjFearRep(rand(4, 7));
+      adjPubRep(-rand(3, 6));
+      adjPlayer('heat', rand(2, 5));
+      logText = `You threatened ${p.name}. Their fear spiked. Your public reputation suffered.`;
+      logEmoji = '😠';
+      addMem('You threatened me. I fear you.');
+      break;
+
+    case 'fight': {
+      adjPlayer('stamina', -rand(10, 20));
+      adjPlayer('heat', rand(5, 12));
+      const won = chance(0.5 + (s.player.stats.strength - 5) * 0.05);
+      if (won) {
+        adjPlayer('health', -rand(3, 8));
+        clampPerson('health' as any, -rand(15, 30));
+        clampPerson('fear', rand(15, 25));
+        clampPerson('relationship', -rand(10, 20));
+        clampPerson('respect', rand(5, 12));
+        adjFearRep(rand(5, 10));
+        adjUWRep(rand(3, 6));
+        logText = `You fought ${p.name} and won. They're shaken. Your fearsome reputation grows.`;
+        logEmoji = '⚔️';
+        addMem('You beat me in a fight. I respect your strength.');
+      } else {
+        adjPlayer('health', -rand(10, 20));
+        clampPerson('relationship', -rand(5, 10));
+        clampPerson('respect', -rand(5, 10));
+        adjPubRep(-rand(2, 5));
+        logText = `You fought ${p.name} and lost. Battered and humiliated, you retreated.`;
+        logEmoji = '⚔️';
+        addMem('You attacked me and lost. Pathetic.');
+      }
+      break;
+    }
+
+    case 'betray': {
+      const betrayGold = rand(50, 120);
+      adjPlayer('money', betrayGold);
+      adjPlayer('heat', rand(10, 20));
+      adjPubRep(-rand(8, 15));
+      adjUWRep(-rand(5, 10));
+      clampPerson('relationship', -rand(40, 70));
+      clampPerson('trust', -rand(40, 60));
+      clampPerson('fear', rand(10, 20));
+      logText = `You betrayed ${p.name} for ${betrayGold}g. A profitable move — but your reputation took a serious hit.`;
+      logEmoji = '🗡️';
+      addMem('You betrayed me. I will never forgive you.');
+      p.statusLabels = [...new Set([...p.statusLabels, 'Betrayed' as const])];
+      break;
+    }
+
     default:
-      p.relationship = Math.min(100, p.relationship + rand(1, 4));
-      logText = `You had a conversation with ${p.name}.`;
+      clampPerson('relationship', rand(1, 3));
+      logText = `You interacted with ${p.name}.`;
       break;
   }
 

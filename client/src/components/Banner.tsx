@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { useBanner, BannerType } from '../hooks/useBanner';
 
 const TYPE_STYLES: Record<BannerType, { bg: string; border: string; text: string; icon: string }> = {
-  success: { bg: 'bg-green-900/90', border: 'border-green-500', text: 'text-green-300', icon: '✓' },
-  error:   { bg: 'bg-red-900/90',   border: 'border-red-500',   text: 'text-red-300',   icon: '✗' },
-  warning: { bg: 'bg-amber-900/90', border: 'border-amber-500', text: 'text-amber-300', icon: '⚠' },
-  info:    { bg: 'bg-blue-900/90',  border: 'border-blue-500',  text: 'text-blue-300',  icon: '●' },
+  success: { bg: 'bg-green-900/95', border: 'border-green-500', text: 'text-green-300', icon: '✓' },
+  error:   { bg: 'bg-red-900/95',   border: 'border-red-500',   text: 'text-red-300',   icon: '✗' },
+  warning: { bg: 'bg-amber-900/95', border: 'border-amber-500', text: 'text-amber-300', icon: '⚠' },
+  info:    { bg: 'bg-blue-900/95',  border: 'border-blue-500',  text: 'text-blue-300',  icon: '●' },
 };
 
 export default function Banner() {
-  const { banner } = useBanner();
+  const { banner, dismissBanner } = useBanner();
   const [visible, setVisible] = useState(false);
   const [currentId, setCurrentId] = useState<number | null>(null);
 
@@ -42,15 +42,24 @@ export default function Banner() {
       <div className={`
         mx-auto max-w-sm mt-2 mx-2
         ${styles.bg} ${styles.border} border-2
-        px-3 py-2 flex items-center gap-2
+        px-3 py-3 flex items-start gap-2
         shadow-lg shadow-black/50
       `}>
-        <span className={`text-[10px] font-bold ${styles.text} flex-shrink-0`}>
+        <span className={`text-[10px] font-bold ${styles.text} flex-shrink-0 mt-0.5`}>
           {styles.icon}
         </span>
         <p className={`text-[9px] leading-relaxed ${styles.text} flex-1`}>
           {banner.message}
         </p>
+        {/* User-dismissible close button */}
+        <button
+          onClick={dismissBanner}
+          className={`flex-shrink-0 ${styles.text} opacity-70 hover:opacity-100 transition-opacity text-[12px] font-bold leading-none ml-1 mt-0.5`}
+          aria-label="Dismiss"
+          data-testid="banner-dismiss"
+        >
+          ✕
+        </button>
       </div>
     </div>
   );

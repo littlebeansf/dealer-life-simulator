@@ -18,16 +18,56 @@ interface Props {
 
 const PX = { fontFamily: 'Press Start 2P, monospace' };
 
-const ACTIONS = [
-  { id: 'talk', label: 'TALK', emoji: '💬', cost: '', desc: 'Have a conversation. Small rel boost.' },
-  { id: 'compliment', label: 'COMPLIMENT', emoji: '😊', cost: '', desc: 'Flatter them. Boosts rel & trust.' },
-  { id: 'give_gift', label: 'GIVE GIFT', emoji: '🎁', cost: '25g', desc: 'Spend 25g. Big rel & trust boost.' },
-  { id: 'apologize', label: 'APOLOGIZE', emoji: '🙏', cost: '', desc: 'Say sorry. Minor rel boost.' },
-  { id: 'ask_rumor', label: 'ASK RUMOR', emoji: '👂', cost: 'Trust≥40', desc: 'Get a market rumor. Needs trust.' },
-  { id: 'bribe', label: 'BRIBE', emoji: '💰', cost: '30g', desc: 'Pay 30g. Risky rel change.' },
-  { id: 'insult', label: 'INSULT', emoji: '😤', cost: '', desc: 'Damage rel. Gain fear.' },
-  { id: 'threaten', label: 'THREATEN', emoji: '😠', cost: '', desc: 'Intimidate. Hurts public rep.' },
+// ── Action definitions ────────────────────────────────────────────────────────
+export interface PersonAction {
+  id: string;
+  label: string;
+  emoji: string;
+  cost?: string;
+  desc: string;
+  category: 'social' | 'romance' | 'business' | 'conflict';
+}
+
+export const PERSON_ACTIONS: PersonAction[] = [
+  // Social
+  { id: 'talk',         label: 'TALK',         emoji: '💬', desc: 'Chat casually. Slight rel & stamina drain.',                    category: 'social'   },
+  { id: 'compliment',   label: 'COMPLIMENT',   emoji: '😊', desc: 'Flatter them. Rel+Trust up, their respect rises.',             category: 'social'   },
+  { id: 'apologize',    label: 'APOLOGIZE',    emoji: '🙏', desc: 'Make amends. Rel & trust recover slightly.',                   category: 'social'   },
+  { id: 'share_rumor',  label: 'SHARE RUMOR',  emoji: '🗣️', desc: 'Trade info. Builds trust, small rep bump.',                   category: 'social'   },
+  { id: 'give_gift',    label: 'GIVE GIFT',    emoji: '🎁', cost: '25g', desc: 'Spend 25g. Big rel & trust boost.',              category: 'social'   },
+  { id: 'ask_rumor',    label: 'ASK RUMOR',    emoji: '👂', cost: 'Trust≥40', desc: 'Get a market rumor from them.',             category: 'social'   },
+  // Romance
+  { id: 'flirt',        label: 'FLIRT',        emoji: '😍', desc: 'Try your charm. Raises or lowers rel based on charisma.',     category: 'romance'  },
+  { id: 'go_drink',     label: 'GO DRINK',     emoji: '🍺', cost: '15g', desc: 'Share a drink. Stamina−, rel+, heat cools.',    category: 'romance'  },
+  { id: 'make_love',    label: 'MAKE LOVE',    emoji: '❤️', cost: 'Rel≥60', desc: 'Intimate moment. Health+ & deep bond.',     category: 'romance'  },
+  { id: 'propose_partnership', label: 'PARTNER', emoji: '🤝', cost: 'Trust≥60', desc: 'Forge a business alliance. Rep+ both.', category: 'romance'  },
+  // Business
+  { id: 'bribe',        label: 'BRIBE',        emoji: '💰', cost: '30g', desc: 'Pay 30g to buy favour. Risky.',               category: 'business' },
+  { id: 'loan_gold',    label: 'LOAN GOLD',    emoji: '🏦', cost: '50g', desc: 'Lend 50g. They owe you — collectable later.', category: 'business' },
+  { id: 'collect_debt', label: 'COLLECT',      emoji: '💸', cost: 'Debt>0', desc: 'Demand repayment of owed gold.',           category: 'business' },
+  { id: 'extort',       label: 'EXTORT',       emoji: '🗡️', cost: 'Fear≥30', desc: 'Squeeze money out. Fear+, rep−.',       category: 'business' },
+  // Conflict
+  { id: 'insult',       label: 'INSULT',       emoji: '😤', desc: 'Trash-talk them. Rel drops, fear minimal.',                  category: 'conflict' },
+  { id: 'threaten',     label: 'THREATEN',     emoji: '😠', desc: 'Intimidate. Their fear+, your public rep−.',                 category: 'conflict' },
+  { id: 'fight',        label: 'FIGHT',        emoji: '⚔️', desc: 'Brawl it out. Health risk for both, rep shifts.',           category: 'conflict' },
+  { id: 'betray',       label: 'BETRAY',       emoji: '🗡️', desc: 'Sell them out. Big money gain, destroy trust forever.',     category: 'conflict' },
 ];
+
+const CATEGORY_LABEL: Record<string, string> = {
+  social:   '── SOCIAL ──',
+  romance:  '── ROMANCE ──',
+  business: '── BUSINESS ──',
+  conflict: '── CONFLICT ──',
+};
+
+const CATEGORY_COLOR: Record<string, string> = {
+  social:   'text-blue-400',
+  romance:  'text-pink-400',
+  business: 'text-accent',
+  conflict: 'text-destructive',
+};
+
+const CATEGORIES: Array<PersonAction['category']> = ['social', 'romance', 'business', 'conflict'];
 
 export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, onNavigate }: Props) {
   const { showBanner } = useBanner();
@@ -58,10 +98,45 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
     person.relationship >= 0 ? 'text-muted-foreground' : 'text-destructive';
 
   const handleAction = (actionId: string) => {
+    const action = PERSON_ACTIONS.find(a => a.id === actionId);
+    if (!action) return;
+
+    // Pre-flight checks (client-side guards — engine has them too but UX needs feedback)
+    if (actionId === 'make_love' && person.relationship < 60) {
+      showBanner(`${person.name} isn't close enough for that. (Rel < 60)`, 'warning'); return;
+    }
+    if (actionId === 'ask_rumor' && person.trust < 40) {
+      showBanner(`${person.name} doesn't trust you enough. (Trust < 40)`, 'warning'); return;
+    }
+    if (actionId === 'propose_partnership' && person.trust < 60) {
+      showBanner(`${person.name} doesn't trust you enough. (Trust < 60)`, 'warning'); return;
+    }
+    if (actionId === 'collect_debt' && person.debtToPlayer <= 0) {
+      showBanner(`${person.name} doesn't owe you anything.`, 'warning'); return;
+    }
+    if (actionId === 'extort' && person.fear < 30) {
+      showBanner(`${person.name} isn't afraid of you yet. (Fear < 30)`, 'warning'); return;
+    }
+    if (actionId === 'give_gift' && gs.player.money < 25) {
+      showBanner(`Not enough gold to give a gift. (25g needed)`, 'error'); return;
+    }
+    if (actionId === 'go_drink' && gs.player.money < 15) {
+      showBanner(`Not enough gold to buy drinks. (15g needed)`, 'error'); return;
+    }
+    if (actionId === 'bribe' && gs.player.money < 30) {
+      showBanner(`Not enough gold to bribe. (30g needed)`, 'error'); return;
+    }
+    if (actionId === 'loan_gold' && gs.player.money < 50) {
+      showBanner(`Not enough gold to loan. (50g needed)`, 'error'); return;
+    }
+
+    playSfx('click');
     const newState = doPersonAction(gs, personId, actionId);
     onUpdate(newState);
-    const action = ACTIONS.find(a => a.id === actionId);
-    showBanner(`${action?.emoji} ${action?.label} done!`, 'info');
+
+    // Outcome feedback from log
+    const lastLog = newState.eventLog[0];
+    showBanner(`${action.emoji} ${lastLog?.text ?? action.label + ' done.'}`, 'info');
   };
 
   return (
@@ -109,7 +184,7 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
           <StatBar label={`RESPECT ${person.respect}`} value={person.respect} color="hsl(270 60% 60%)" showValue={false} />
         </div>
 
-        {/* Traits + status */}
+        {/* Traits + debts */}
         <div className="bg-card border border-border p-3">
           <div className="flex flex-wrap gap-1 mb-2">
             {person.traits.map(t => (
@@ -124,28 +199,53 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
           )}
         </div>
 
-        {/* Actions — tap to fire immediately */}
+        {/* Actions — grouped by category */}
         <div>
-          <p className="text-[9px] text-muted-foreground mb-2" style={PX}>ACTIONS</p>
-          <div className="grid grid-cols-2 gap-1">
-            {ACTIONS.map(action => (
-              <button
-                key={action.id}
-                data-testid={`action-${action.id}`}
-                onClick={() => handleAction(action.id)}
-                className="bg-card border border-border p-2 text-left hover:border-primary/50 transition-all active:bg-primary/10"
-              >
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="text-sm">{action.emoji}</span>
-                  <span className="text-[9px] font-bold text-foreground truncate" style={PX}>{action.label}</span>
+          {CATEGORIES.map(cat => {
+            const acts = PERSON_ACTIONS.filter(a => a.category === cat);
+            return (
+              <div key={cat} className="mb-3">
+                <p className={`text-[8px] mb-1 ${CATEGORY_COLOR[cat]}`} style={PX}>{CATEGORY_LABEL[cat]}</p>
+                <div className="grid grid-cols-2 gap-1">
+                  {acts.map(action => {
+                    // Determine if blocked
+                    let blockedReason = '';
+                    if (action.id === 'make_love' && person.relationship < 60) blockedReason = 'Rel<60';
+                    if (action.id === 'ask_rumor' && person.trust < 40) blockedReason = 'Trust<40';
+                    if (action.id === 'propose_partnership' && person.trust < 60) blockedReason = 'Trust<60';
+                    if (action.id === 'collect_debt' && person.debtToPlayer <= 0) blockedReason = 'No debt';
+                    if (action.id === 'extort' && person.fear < 30) blockedReason = 'Fear<30';
+                    const isBlocked = !!blockedReason;
+
+                    return (
+                      <button
+                        key={action.id}
+                        data-testid={`action-${action.id}`}
+                        onClick={() => !isBlocked && handleAction(action.id)}
+                        className={`bg-card border text-left transition-all p-2 ${
+                          isBlocked
+                            ? 'border-border opacity-50 cursor-not-allowed'
+                            : 'border-border hover:border-primary/50 active:bg-primary/10 cursor-pointer'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <span className="text-sm">{action.emoji}</span>
+                          <span className="text-[8px] font-bold text-foreground truncate" style={PX}>{action.label}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground ui-text leading-tight">{action.desc}</p>
+                        {action.cost && !blockedReason && (
+                          <span className="text-[9px] text-accent ui-text mt-0.5 block">{action.cost}</span>
+                        )}
+                        {blockedReason && (
+                          <span className="text-[9px] text-destructive ui-text mt-0.5 block">{blockedReason}</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <p className="text-[11px] text-muted-foreground ui-text leading-tight">{action.desc}</p>
-                {action.cost && (
-                  <span className="text-[11px] text-accent ui-text mt-0.5 block">{action.cost}</span>
-                )}
-              </button>
-            ))}
-          </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Memories */}
@@ -153,7 +253,7 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
           <div className="bg-card border border-border p-3">
             <p className="text-[9px] text-muted-foreground mb-2" style={PX}>MEMORIES</p>
             <div className="space-y-1">
-              {person.memories.slice(0, 5).map((mem, i) => (
+              {person.memories.slice(0, 6).map((mem, i) => (
                 <div key={i} className="flex gap-2">
                   <span className="text-[9px] text-muted-foreground ui-text w-12 flex-shrink-0">Age {mem.age}</span>
                   <p className="text-[9px] text-muted-foreground ui-text italic">"{mem.description}"</p>

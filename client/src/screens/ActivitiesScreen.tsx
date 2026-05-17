@@ -36,6 +36,12 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
       showBanner(`Must be at least age ${activity.requiresMinAge}.`, 'error');
       return;
     }
+    // Enforce cooldownPerYear limit
+    const count = gs.player.activityCounts[activityId] ?? 0;
+    if (activity.cooldownPerYear > 0 && count >= activity.cooldownPerYear) {
+      showBanner(`${activity.name} — max uses this year reached!`, 'warning');
+      return;
+    }
     const newState = doActivity(gs, activity);
     onUpdate(newState);
     playSfx('coin'); showBanner(`${activity.name} — done!`, 'success');
@@ -45,7 +51,10 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
     const count = gs.player.activityCounts[activityId] ?? 0;
     const activity = ACTIVITIES.find(a => a.id === activityId)!;
     const diminished = count >= 2;
-    return { count, diminished };
+    const maxUses = activity.cooldownPerYear;
+    const exhausted = maxUses > 0 && count >= maxUses;
+    const remaining = maxUses > 0 ? Math.max(0, maxUses - count) : null;
+    return { count, diminished, exhausted, remaining, maxUses };
   };
 
   return (
@@ -63,12 +72,12 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
         )}
 
         {displayList.map(activity => {
-          const { count, diminished } = getUsageInfo(activity.id);
+          const { count, diminished, exhausted, remaining, maxUses } = getUsageInfo(activity.id);
           const isLocal = activity.locationId === gs.currentLocationId;
           const isOtherLocation = activity.locationId && activity.locationId !== gs.currentLocationId;
           const statFail = activity.requiresStat && (gs.player.stats[activity.requiresStat.stat] ?? 0) < activity.requiresStat.min;
           const ageFail = activity.requiresMinAge && gs.player.age < activity.requiresMinAge;
-          const blocked = isOtherLocation || statFail || ageFail;
+          const blocked = isOtherLocation || statFail || ageFail || exhausted;
 
           // Add separator before "always" activities section
           const isFirstAlways = !activity.locationId && displayList.indexOf(activity) === locationActivities.length;
@@ -96,7 +105,9 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
                       <div className="flex items-center gap-1 flex-shrink-0">
                         {isLocal && <span className="text-[11px] text-accent bg-accent/20 px-1 py-0.5 ui-text">LOCAL</span>}
                         {isOtherLocation && <span className="text-[11px] text-muted-foreground bg-secondary px-1 py-0.5 ui-text">ELSEWHERE</span>}
-                        {diminished && count > 0 && <span className="text-[11px] text-orange-400 bg-orange-900/20 px-1 py-0.5 ui-text">DIMINISHED</span>}
+                        {exhausted && <span className="text-[11px] text-destructive bg-red-900/20 px-1 py-0.5 ui-text">MAX USED</span>}
+                        {!exhausted && diminished && count > 0 && <span className="text-[11px] text-orange-400 bg-orange-900/20 px-1 py-0.5 ui-text">DIM</span>}
+                        {!exhausted && remaining !== null && <span className="text-[11px] text-muted-foreground bg-secondary px-1 py-0.5 ui-text">{remaining}/{maxUses}</span>}
                       </div>
                     </div>
                     <p className="text-[9px] text-muted-foreground ui-text mt-0.5">{activity.description}</p>
@@ -120,10 +131,11 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
                       })}
                     </div>
 
-                    {(statFail || ageFail) && (
+                    {(statFail || ageFail || exhausted) && (
                       <p className="text-[9px] text-destructive ui-text mt-1">
-                        {statFail ? `Need ${activity.requiresStat?.stat} ≥ ${activity.requiresStat?.min}` : ''}
-                        {ageFail ? ` Age ≥ ${activity.requiresMinAge}` : ''}
+                        {exhausted ? `Yearly limit reached. Advance year to reset.` : ''}
+                        {!exhausted && statFail ? `Need ${activity.requiresStat?.stat} ≥ ${activity.requiresStat?.min}` : ''}
+                        {!exhausted && ageFail ? ` Age ≥ ${activity.requiresMinAge}` : ''}
                       </p>
                     )}
                     {isOtherLocation && (
