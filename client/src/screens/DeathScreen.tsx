@@ -66,7 +66,7 @@ export default function DeathScreen({ gameState: gs, onNewGame, onMainMenu }: Pr
           <span className="text-3xl">{race.emoji}</span>
           <div>
             <p className="text-[8px] font-bold text-foreground" style={PX}>{player.name}</p>
-            <p className="text-[5px] text-muted-foreground ui-text">{race.name} · Died age {player.age} in {location.name}</p>
+            <p className="text-[9px] text-muted-foreground ui-text">{race.name} · Died age {player.age} in {location.name}</p>
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export default function DeathScreen({ gameState: gs, onNewGame, onMainMenu }: Pr
             { label: 'ENEMIES', value: enemiesCount, color: 'text-destructive' },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-secondary/50 p-2">
-              <p className="text-[4px] text-muted-foreground mb-1" style={PX}>{label}</p>
+              <p className="text-[8px] text-muted-foreground mb-1" style={PX}>{label}</p>
               <p className={`text-[8px] font-bold ${color}`} style={PX}>{value}</p>
             </div>
           ))}
@@ -89,33 +89,33 @@ export default function DeathScreen({ gameState: gs, onNewGame, onMainMenu }: Pr
 
       {/* Reputation legacy */}
       <div className="w-full max-w-sm bg-card border border-border p-3 mb-4">
-        <p className="text-[6px] text-muted-foreground mb-2" style={PX}>FINAL REPUTATION</p>
+        <p className="text-[9px] text-muted-foreground mb-2" style={PX}>FINAL REPUTATION</p>
         <div className="space-y-1">
           <div className="flex justify-between">
-            <span className="text-[5px] text-muted-foreground ui-text">PUBLIC</span>
-            <span className="text-[5px] text-foreground ui-text">{pubLabel} ({player.reputation.public > 0 ? '+' : ''}{player.reputation.public})</span>
+            <span className="text-[9px] text-muted-foreground ui-text">PUBLIC</span>
+            <span className="text-[9px] text-foreground ui-text">{pubLabel} ({player.reputation.public > 0 ? '+' : ''}{player.reputation.public})</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[5px] text-muted-foreground ui-text">UNDERWORLD</span>
-            <span className="text-[5px] text-purple-400 ui-text">{uwRank} ({player.reputation.underworld})</span>
+            <span className="text-[9px] text-muted-foreground ui-text">UNDERWORLD</span>
+            <span className="text-[9px] text-purple-400 ui-text">{uwRank} ({player.reputation.underworld})</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-[5px] text-muted-foreground ui-text">FEAR</span>
-            <span className="text-[5px] text-destructive ui-text">{player.reputation.fear}/100</span>
+            <span className="text-[9px] text-muted-foreground ui-text">FEAR</span>
+            <span className="text-[9px] text-destructive ui-text">{player.reputation.fear}/100</span>
           </div>
         </div>
       </div>
 
       {/* Legacy score */}
       <div className="w-full max-w-sm bg-card border-2 border-accent/50 p-4 mb-6 text-center">
-        <p className="text-[5px] text-muted-foreground mb-1" style={PX}>LEGACY SCORE</p>
+        <p className="text-[9px] text-muted-foreground mb-1" style={PX}>LEGACY SCORE</p>
         <p className="text-[14px] font-bold text-accent mb-1" style={PX}>{score}</p>
         <p className="text-[7px] font-bold text-foreground" style={PX}>{rankTitle}</p>
       </div>
 
       {/* Last 5 log entries */}
       <div className="w-full max-w-sm mb-6">
-        <p className="text-[5px] text-muted-foreground mb-2" style={PX}>FINAL MOMENTS</p>
+        <p className="text-[9px] text-muted-foreground mb-2" style={PX}>FINAL MOMENTS</p>
         <div className="space-y-1">
           {eventLog.slice(0, 5).map(entry => (
             <div key={entry.id} className={`log-entry type-${entry.type} px-2 py-1`}>

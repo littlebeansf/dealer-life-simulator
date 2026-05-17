@@ -5,15 +5,13 @@ import { RACES } from '../game/data/races';
 import { LOCATION_IMAGES, RACE_IMAGES } from '../assets/pixel';
 import StatBar from './StatBar';
 import Banner from './Banner';
+import { TickerBar } from './NewsTicker';
 
 interface Props {
   gameState: GameState;
   children: ReactNode;
-  /** Extra content rendered in the location panel (below stats) */
   panelExtra?: ReactNode;
 }
-
-const PX = { fontFamily: 'Press Start 2P, monospace' };
 
 export default function GameLayout({ gameState: gs, children, panelExtra }: Props) {
   const { player } = gs;
@@ -24,15 +22,14 @@ export default function GameLayout({ gameState: gs, children, panelExtra }: Prop
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* Banner notification — slides in from top */}
+      {/* Slide-in Banner notification */}
       <Banner />
 
-      {/* ── TOP PANEL: Location (fixed ~40%) ─────────────────────────────── */}
+      {/* ── TOP PANEL: Location bg + player stats ──────────────────────── */}
       <div
         className="relative flex-shrink-0 overflow-hidden"
-        style={{ height: '40vh', minHeight: '200px', maxHeight: '280px' }}
+        style={{ height: '42vh', minHeight: '210px', maxHeight: '300px' }}
       >
-        {/* Location background image */}
         {locImg && (
           <img
             src={locImg}
@@ -42,58 +39,64 @@ export default function GameLayout({ gameState: gs, children, panelExtra }: Prop
             decoding="async"
           />
         )}
-        {/* Gradient overlay: dark at top/bottom for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black/80" />
+        {/* Dark overlays top and bottom for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/15 to-black/85" />
 
-        {/* Top row: character info */}
-        <div className="absolute top-0 left-0 right-0 px-3 pt-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {raceImg ? (
+        {/* ── Character row ── */}
+        <div className="absolute top-0 left-0 right-0 px-4 pt-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              {raceImg && (
                 <img
                   src={raceImg}
                   alt={race.name}
-                  className="w-8 h-8 object-contain flex-shrink-0" style={{imageRendering:"pixelated"}}
+                  className="w-10 h-10 object-contain flex-shrink-0"
+                  style={{ imageRendering: 'pixelated' }}
                   loading="eager"
                 />
-              ) : null}
+              )}
               <div>
-                <p className="text-[7px] font-bold text-white leading-none drop-shadow" style={PX}>
+                <p className="text-[11px] font-bold text-white leading-none drop-shadow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
                   {player.name}
                 </p>
-                <p className="text-[5px] text-white/70 leading-none mt-0.5" style={{ fontFamily: 'Courier New, monospace' }}>
-                  {race.name} · Age {player.age} · {player.gender}
+                <p className="text-[10px] text-white/75 leading-tight mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
+                  {race.name} · Age {player.age}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[9px] font-bold text-accent drop-shadow" style={PX}>{player.money}g</p>
-              <p className="text-[5px] text-white/60" style={{ fontFamily: 'Courier New, monospace' }}>Yr {gs.currentYear}</p>
+              <p className="text-[13px] font-bold text-accent drop-shadow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+                {player.money}g
+              </p>
+              <p className="text-[10px] text-white/60" style={{ fontFamily: 'Courier New, monospace' }}>Year {gs.currentYear}</p>
             </div>
           </div>
 
-          {/* Stat bars row */}
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2">
+          {/* Stat bars */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-2.5">
             <StatBar label="HP" value={player.health} color="hsl(142 60% 45%)" />
             <StatBar label="STA" value={player.stamina} color="hsl(200 70% 55%)" />
             <StatBar label="HEAT" value={player.heat} color="hsl(0 70% 50%)" invert />
-            <StatBar label="UW" value={player.reputation.underworld} color="hsl(270 60% 60%)" />
+            <StatBar label="REP" value={player.reputation.underworld} color="hsl(270 60% 60%)" />
           </div>
         </div>
 
-        {/* Bottom row: location name */}
-        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-          <p className="text-[9px] font-bold text-white drop-shadow" style={PX}>
+        {/* ── Location name ── */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3">
+          <p className="text-[12px] font-bold text-white drop-shadow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
             {location.name.toUpperCase()}
           </p>
-          <p className="text-[5px] text-white/60" style={{ fontFamily: 'Courier New, monospace' }}>
+          <p className="text-[10px] text-white/65 mt-0.5" style={{ fontFamily: 'Courier New, monospace' }}>
             {location.culture}
           </p>
           {panelExtra}
         </div>
       </div>
 
-      {/* ── BOTTOM PANEL: Scrollable content (~60%) ───────────────────────── */}
+      {/* ── News Ticker bar ─────────────────────────────────────────────── */}
+      <TickerBar gameState={gs} />
+
+      {/* ── Scrollable content ──────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto bg-background min-h-0">
         {children}
       </div>

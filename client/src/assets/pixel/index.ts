@@ -77,3 +77,7 @@ export const ITEM_IMAGES: Record<string, string> = {
 };
 
 export { startScreen };
+
+// World map
+import worldMap from './world_map.jpg';
+export { worldMap };

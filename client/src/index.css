@@ -36,30 +36,30 @@
 
   /* === LIGHT MODE — parchment / old map aesthetic === */
   .light {
-    --background: 40 30% 94%;
-    --foreground: 220 25% 15%;
-    --card: 40 25% 89%;
-    --card-foreground: 220 25% 15%;
-    --popover: 40 25% 89%;
-    --popover-foreground: 220 25% 15%;
-    --primary: 142 55% 32%;
+    --background: 40 30% 93%;
+    --foreground: 220 30% 12%;
+    --card: 40 25% 88%;
+    --card-foreground: 220 30% 12%;
+    --popover: 40 25% 88%;
+    --popover-foreground: 220 30% 12%;
+    --primary: 142 55% 28%;
     --primary-foreground: 40 30% 96%;
-    --secondary: 40 20% 82%;
-    --secondary-foreground: 220 20% 25%;
-    --muted: 40 20% 84%;
-    --muted-foreground: 220 12% 40%;
-    --accent: 30 70% 40%;
+    --secondary: 40 20% 80%;
+    --secondary-foreground: 220 25% 18%;
+    --muted: 40 20% 83%;
+    --muted-foreground: 220 15% 38%;
+    --accent: 220 70% 38%;
     --accent-foreground: 40 30% 96%;
-    --destructive: 0 65% 42%;
+    --destructive: 0 65% 38%;
     --destructive-foreground: 40 30% 96%;
-    --border: 40 20% 72%;
-    --input: 40 20% 85%;
-    --ring: 142 55% 32%;
-    --chart-1: 142 55% 32%;
-    --chart-2: 30 70% 40%;
-    --chart-3: 270 50% 45%;
-    --chart-4: 0 65% 42%;
-    --chart-5: 200 60% 40%;
+    --border: 40 20% 65%;
+    --input: 40 20% 84%;
+    --ring: 142 55% 28%;
+    --chart-1: 142 55% 28%;
+    --chart-2: 220 70% 38%;
+    --chart-3: 270 50% 42%;
+    --chart-4: 0 65% 38%;
+    --chart-5: 200 60% 38%;
   }
 }
 
@@ -117,13 +117,40 @@
 /* Pixel font */
 .pixel-text {
   font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
+  font-size: 10px;
   line-height: 1.8;
 }
 
 .ui-text {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Readable button / label sizes */
+.px-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+}
+
+.px-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.px-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+}
+
+.px-section {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* Location background gradients — dark mode */
@@ -187,8 +214,28 @@
 .log-entry.type-rumor { border-left-color: hsl(270 60% 55%); }
 .log-entry.type-activity { border-left-color: hsl(var(--primary)); }
 
+/* News ticker animation */
+@keyframes tickerScroll {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.news-ticker {
+  animation: tickerScroll 20s linear infinite;
+  white-space: nowrap;
+}
+.news-ticker-pause:hover .news-ticker {
+  animation-play-state: paused;
+}
+
+/* Slide-down notification */
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.slide-down { animation: slideDown 0.25s ease forwards; }
+
 /* Mobile */
 @media (max-width: 640px) {
-  .pixel-text { font-size: 6px; }
-  .ui-text { font-size: 11px; }
+  .pixel-text { font-size: 9px; }
+  .ui-text { font-size: 12px; }
 }

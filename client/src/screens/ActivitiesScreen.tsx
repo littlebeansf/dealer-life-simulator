@@ -4,6 +4,7 @@ import { doActivity } from '../game/engine';
 import GameLayout from '../components/GameLayout';
 import BottomNav from '../components/BottomNav';
 import { useBanner } from '../hooks/useBanner';
+import { useAudio } from '../hooks/useAudio';
 
 interface Props {
   gameState: GameState;
@@ -15,6 +16,7 @@ const PX = { fontFamily: 'Press Start 2P, monospace' };
 
 export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }: Props) {
   const { showBanner } = useBanner();
+  const { playSfx } = useAudio();
 
   const locationActivities = ACTIVITIES.filter(a => a.locationId === gs.currentLocationId);
   const alwaysActivities = ACTIVITIES.filter(a => !a.locationId);
@@ -36,7 +38,7 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
     }
     const newState = doActivity(gs, activity);
     onUpdate(newState);
-    showBanner(`${activity.name} — done!`, 'success');
+    playSfx('coin'); showBanner(`${activity.name} — done!`, 'success');
   };
 
   const getUsageInfo = (activityId: string) => {
@@ -50,14 +52,14 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
     <GameLayout
       gameState={gs}
       panelExtra={
-        <p className="text-[5px] text-white/60 mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
+        <p className="text-[9px] text-white/60 mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
           Tap an activity to do it instantly
         </p>
       }
     >
       <div className="px-3 py-2 pb-20 space-y-1">
         {locationActivities.length > 0 && (
-          <p className="text-[5px] text-accent mb-1" style={PX}>── LOCAL ──</p>
+          <p className="text-[9px] text-accent mb-1" style={PX}>── LOCAL ──</p>
         )}
 
         {displayList.map(activity => {
@@ -74,7 +76,7 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
           return (
             <div key={activity.id}>
               {isFirstAlways && locationActivities.length > 0 && (
-                <p className="text-[5px] text-muted-foreground my-1" style={PX}>── UNIVERSAL ──</p>
+                <p className="text-[9px] text-muted-foreground my-1" style={PX}>── UNIVERSAL ──</p>
               )}
               <button
                 data-testid={`activity-${activity.id}`}
@@ -90,11 +92,11 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
                   <span className="text-lg flex-shrink-0 leading-none mt-0.5">{activity.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <p className="text-[6px] font-bold text-foreground" style={PX}>{activity.name.toUpperCase()}</p>
+                      <p className="text-[9px] font-bold text-foreground" style={PX}>{activity.name.toUpperCase()}</p>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        {isLocal && <span className="text-[4px] text-accent bg-accent/20 px-1 py-0.5 ui-text">LOCAL</span>}
-                        {isOtherLocation && <span className="text-[4px] text-muted-foreground bg-secondary px-1 py-0.5 ui-text">ELSEWHERE</span>}
-                        {diminished && count > 0 && <span className="text-[4px] text-orange-400 bg-orange-900/20 px-1 py-0.5 ui-text">DIMINISHED</span>}
+                        {isLocal && <span className="text-[11px] text-accent bg-accent/20 px-1 py-0.5 ui-text">LOCAL</span>}
+                        {isOtherLocation && <span className="text-[11px] text-muted-foreground bg-secondary px-1 py-0.5 ui-text">ELSEWHERE</span>}
+                        {diminished && count > 0 && <span className="text-[11px] text-orange-400 bg-orange-900/20 px-1 py-0.5 ui-text">DIMINISHED</span>}
                       </div>
                     </div>
                     <p className="text-[9px] text-muted-foreground ui-text mt-0.5">{activity.description}</p>
@@ -113,19 +115,19 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
                         else if (e.type === 'reputation_public') { label = `REP ${e.value! >= 0 ? '+' : ''}${e.value}`; color = e.value! >= 0 ? 'text-primary' : 'text-destructive'; }
                         if (!label) return null;
                         return (
-                          <span key={i} className={`text-[5px] ui-text px-1 bg-secondary ${color}`}>{label}</span>
+                          <span key={i} className={`text-[9px] ui-text px-1 bg-secondary ${color}`}>{label}</span>
                         );
                       })}
                     </div>
 
                     {(statFail || ageFail) && (
-                      <p className="text-[5px] text-destructive ui-text mt-1">
+                      <p className="text-[9px] text-destructive ui-text mt-1">
                         {statFail ? `Need ${activity.requiresStat?.stat} ≥ ${activity.requiresStat?.min}` : ''}
                         {ageFail ? ` Age ≥ ${activity.requiresMinAge}` : ''}
                       </p>
                     )}
                     {isOtherLocation && (
-                      <p className="text-[5px] text-muted-foreground ui-text mt-1">
+                      <p className="text-[9px] text-muted-foreground ui-text mt-1">
                         Available at: {activity.locationId?.replace(/_/g, ' ')}
                       </p>
                     )}

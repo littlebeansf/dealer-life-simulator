@@ -7,6 +7,7 @@ import GameLayout from '../components/GameLayout';
 import BottomNav from '../components/BottomNav';
 import StatBar from '../components/StatBar';
 import { useBanner } from '../hooks/useBanner';
+import { useAudio } from '../hooks/useAudio';
 
 interface Props {
   gameState: GameState;
@@ -30,12 +31,13 @@ const ACTIONS = [
 
 export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, onNavigate }: Props) {
   const { showBanner } = useBanner();
+  const { playSfx } = useAudio();
 
   if (!personId || !gs.people[personId]) {
     return (
       <div className="min-h-screen bg-background flex flex-col pb-16 items-center justify-center">
-        <p className="text-[6px] text-muted-foreground" style={PX}>PERSON NOT FOUND</p>
-        <button onClick={() => onNavigate('people')} className="mt-4 text-[6px] text-primary" style={PX}>← BACK</button>
+        <p className="text-[9px] text-muted-foreground" style={PX}>PERSON NOT FOUND</p>
+        <button onClick={() => onNavigate('people')} className="mt-4 text-[9px] text-primary" style={PX}>← BACK</button>
         <BottomNav current="people" onNavigate={onNavigate} />
       </div>
     );
@@ -66,7 +68,7 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
     <GameLayout
       gameState={gs}
       panelExtra={
-        <p className="text-[5px] text-white/60 mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
+        <p className="text-[9px] text-white/60 mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
           Tap an action to interact
         </p>
       }
@@ -75,7 +77,7 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
       <div className="bg-card border-b border-border px-3 py-3">
         <button
           onClick={() => onNavigate('people')}
-          className="text-[5px] text-muted-foreground hover:text-foreground mb-2 block"
+          className="text-[9px] text-muted-foreground hover:text-foreground mb-2 block"
           style={PX}
         >
           ← BACK TO PEOPLE
@@ -87,12 +89,12 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
             <span className="text-4xl">{person.emoji}</span>
           )}
           <div>
-            <p className="text-[8px] font-bold text-foreground" style={PX}>{person.name}</p>
-            <p className="text-[5px] text-muted-foreground ui-text">
+            <p className="text-[11px] font-bold text-foreground" style={PX}>{person.name}</p>
+            <p className="text-[9px] text-muted-foreground ui-text">
               {race.name} · Age {person.age} · {person.role.toUpperCase()}
             </p>
-            {location && <p className="text-[5px] text-muted-foreground ui-text">{location.name}</p>}
-            <p className={`text-[6px] font-bold mt-1 ui-text ${relColor}`}>{relLabel}</p>
+            {location && <p className="text-[9px] text-muted-foreground ui-text">{location.name}</p>}
+            <p className={`text-[9px] font-bold mt-1 ui-text ${relColor}`}>{relLabel}</p>
           </div>
         </div>
       </div>
@@ -100,7 +102,7 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
       <div className="px-3 py-2 space-y-3 pb-20">
         {/* Relationship meters */}
         <div className="bg-card border border-border p-3 space-y-2">
-          <p className="text-[5px] text-muted-foreground mb-1" style={PX}>RELATIONSHIP</p>
+          <p className="text-[9px] text-muted-foreground mb-1" style={PX}>RELATIONSHIP</p>
           <StatBar label={`REL (${person.relationship > 0 ? '+' : ''}${person.relationship})`} value={Math.max(0, Math.min(100, ((person.relationship + 100) / 200) * 100))} color="hsl(142 60% 45%)" showValue={false} />
           <StatBar label={`TRUST ${person.trust}`} value={person.trust} color="hsl(200 70% 55%)" showValue={false} />
           <StatBar label={`FEAR ${person.fear}`} value={person.fear} color="hsl(0 70% 50%)" showValue={false} />
@@ -111,20 +113,20 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
         <div className="bg-card border border-border p-3">
           <div className="flex flex-wrap gap-1 mb-2">
             {person.traits.map(t => (
-              <span key={t} className="text-[5px] px-1 bg-secondary text-secondary-foreground ui-text">{t}</span>
+              <span key={t} className="text-[9px] px-1 bg-secondary text-secondary-foreground ui-text">{t}</span>
             ))}
           </div>
           {(person.debtToPlayer > 0 || person.playerDebtToThem > 0) && (
             <div>
-              {person.debtToPlayer > 0 && <p className="text-[5px] text-primary ui-text">Owes you: {person.debtToPlayer}g</p>}
-              {person.playerDebtToThem > 0 && <p className="text-[5px] text-destructive ui-text">You owe: {person.playerDebtToThem}g</p>}
+              {person.debtToPlayer > 0 && <p className="text-[9px] text-primary ui-text">Owes you: {person.debtToPlayer}g</p>}
+              {person.playerDebtToThem > 0 && <p className="text-[9px] text-destructive ui-text">You owe: {person.playerDebtToThem}g</p>}
             </div>
           )}
         </div>
 
         {/* Actions — tap to fire immediately */}
         <div>
-          <p className="text-[5px] text-muted-foreground mb-2" style={PX}>ACTIONS</p>
+          <p className="text-[9px] text-muted-foreground mb-2" style={PX}>ACTIONS</p>
           <div className="grid grid-cols-2 gap-1">
             {ACTIONS.map(action => (
               <button
@@ -135,11 +137,11 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
               >
                 <div className="flex items-center gap-1 mb-0.5">
                   <span className="text-sm">{action.emoji}</span>
-                  <span className="text-[5px] font-bold text-foreground truncate" style={PX}>{action.label}</span>
+                  <span className="text-[9px] font-bold text-foreground truncate" style={PX}>{action.label}</span>
                 </div>
-                <p className="text-[8px] text-muted-foreground ui-text leading-tight">{action.desc}</p>
+                <p className="text-[11px] text-muted-foreground ui-text leading-tight">{action.desc}</p>
                 {action.cost && (
-                  <span className="text-[4px] text-accent ui-text mt-0.5 block">{action.cost}</span>
+                  <span className="text-[11px] text-accent ui-text mt-0.5 block">{action.cost}</span>
                 )}
               </button>
             ))}
@@ -149,11 +151,11 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
         {/* Memories */}
         {person.memories.length > 0 && (
           <div className="bg-card border border-border p-3">
-            <p className="text-[5px] text-muted-foreground mb-2" style={PX}>MEMORIES</p>
+            <p className="text-[9px] text-muted-foreground mb-2" style={PX}>MEMORIES</p>
             <div className="space-y-1">
               {person.memories.slice(0, 5).map((mem, i) => (
                 <div key={i} className="flex gap-2">
-                  <span className="text-[5px] text-muted-foreground ui-text w-12 flex-shrink-0">Age {mem.age}</span>
+                  <span className="text-[9px] text-muted-foreground ui-text w-12 flex-shrink-0">Age {mem.age}</span>
                   <p className="text-[9px] text-muted-foreground ui-text italic">"{mem.description}"</p>
                 </div>
               ))}

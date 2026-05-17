@@ -19,10 +19,10 @@ export default function SettingsModal({ onClose }: Props) {
       <div className="w-full max-w-xs mx-4 bg-card border-2 border-border shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b-2 border-border">
-          <h2 className="text-[8px] text-accent" style={PX}>SETTINGS</h2>
+          <h2 className="text-[11px] text-accent" style={PX}>SETTINGS</h2>
           <button
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground text-[8px]"
+            className="text-muted-foreground hover:text-foreground text-[11px]"
             style={PX}
           >
             ✕
@@ -35,8 +35,8 @@ export default function SettingsModal({ onClose }: Props) {
           {/* Music toggle */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[7px] text-foreground mb-0.5" style={PX}>MUSIC</p>
-              <p className="text-[5px] text-muted-foreground" style={{ fontFamily: 'Courier New, monospace' }}>
+              <p className="text-[11px] text-foreground mb-0.5" style={PX}>MUSIC</p>
+              <p className="text-[9px] text-muted-foreground" style={{ fontFamily: 'Courier New, monospace' }}>
                 Ambient RPG soundtrack
               </p>
             </div>
@@ -58,8 +58,8 @@ export default function SettingsModal({ onClose }: Props) {
           {/* Volume slider */}
           <div className={`space-y-2 transition-opacity ${musicEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
             <div className="flex items-center justify-between">
-              <p className="text-[7px] text-foreground" style={PX}>VOLUME</p>
-              <p className="text-[7px] text-muted-foreground" style={PX}>{Math.round(volume * 100)}%</p>
+              <p className="text-[11px] text-foreground" style={PX}>VOLUME</p>
+              <p className="text-[11px] text-muted-foreground" style={PX}>{Math.round(volume * 100)}%</p>
             </div>
             <input
               type="range"
@@ -76,8 +76,8 @@ export default function SettingsModal({ onClose }: Props) {
           {/* Theme toggle */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[7px] text-foreground mb-0.5" style={PX}>THEME</p>
-              <p className="text-[5px] text-muted-foreground" style={{ fontFamily: 'Courier New, monospace' }}>
+              <p className="text-[11px] text-foreground mb-0.5" style={PX}>THEME</p>
+              <p className="text-[9px] text-muted-foreground" style={{ fontFamily: 'Courier New, monospace' }}>
                 {theme === 'dark' ? 'Dark fantasy mode' : 'Parchment light mode'}
               </p>
             </div>
@@ -92,7 +92,7 @@ export default function SettingsModal({ onClose }: Props) {
 
           <div className="border-t-2 border-border" />
 
-          <p className="text-[5px] text-muted-foreground text-center" style={{ fontFamily: 'Courier New, monospace' }}>
+          <p className="text-[9px] text-muted-foreground text-center" style={{ fontFamily: 'Courier New, monospace' }}>
             v1.0-poc · built with perplexity computer
           </p>
         </div>

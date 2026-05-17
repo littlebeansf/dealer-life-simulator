@@ -46,15 +46,15 @@ export default function InventoryScreen({ gameState: gs, onNavigate }: Props) {
             showValue={false}
           />
           <div className="flex justify-between mt-1">
-            <span className="text-[5px] text-muted-foreground ui-text">{heldItems.length} item type(s)</span>
-            <span className="text-[5px] text-accent ui-text">Est. value: {totalValue}g</span>
+            <span className="text-[9px] text-muted-foreground ui-text">{heldItems.length} item type(s)</span>
+            <span className="text-[9px] text-accent ui-text">Est. value: {totalValue}g</span>
           </div>
         </div>
 
         {heldItems.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-4xl mb-3">🎒</p>
-            <p className="text-[7px] text-muted-foreground" style={PX}>BAG EMPTY</p>
+            <p className="text-[10px] text-muted-foreground" style={PX}>BAG EMPTY</p>
             <p className="text-[9px] text-muted-foreground ui-text mt-2">Visit the market to stock up.</p>
           </div>
         ) : (
@@ -78,16 +78,16 @@ export default function InventoryScreen({ gameState: gs, onNavigate }: Props) {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <p className="text-[6px] font-bold text-foreground" style={PX}>{item.name.toUpperCase()}</p>
-                      <p className="text-[7px] font-bold text-accent" style={PX}>×{qty}</p>
+                      <p className="text-[9px] font-bold text-foreground" style={PX}>{item.name.toUpperCase()}</p>
+                      <p className="text-[10px] font-bold text-accent" style={PX}>×{qty}</p>
                     </div>
-                    <p className={`text-[5px] ui-text uppercase ${RARITY_COLORS[item.rarity]}`}>{item.rarity}</p>
+                    <p className={`text-[9px] ui-text uppercase ${RARITY_COLORS[item.rarity]}`}>{item.rarity}</p>
                     <div className="flex justify-between mt-1">
-                      <span className="text-[5px] text-muted-foreground ui-text">Unit: {price}g · Wt: {item.weight}</span>
-                      <span className="text-[5px] text-primary ui-text">Total: {itemValue}g</span>
+                      <span className="text-[9px] text-muted-foreground ui-text">Unit: {price}g · Wt: {item.weight}</span>
+                      <span className="text-[9px] text-primary ui-text">Total: {itemValue}g</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[4px] text-muted-foreground ui-text">RISK</span>
+                      <span className="text-[11px] text-muted-foreground ui-text">RISK</span>
                       <div className="flex-1 stat-bar">
                         <div
                           className="stat-bar-fill"
@@ -97,7 +97,7 @@ export default function InventoryScreen({ gameState: gs, onNavigate }: Props) {
                           }}
                         />
                       </div>
-                      <span className="text-[4px] text-muted-foreground ui-text">{item.risk}/10</span>
+                      <span className="text-[11px] text-muted-foreground ui-text">{item.risk}/10</span>
                     </div>
                   </div>
                 </div>

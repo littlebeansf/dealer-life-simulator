@@ -48,7 +48,7 @@ export default function Banner() {
         <span className={`text-[10px] font-bold ${styles.text} flex-shrink-0`}>
           {styles.icon}
         </span>
-        <p className={`text-[6px] leading-relaxed ${styles.text} flex-1`}>
+        <p className={`text-[9px] leading-relaxed ${styles.text} flex-1`}>
           {banner.message}
         </p>
       </div>

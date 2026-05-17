@@ -33,22 +33,22 @@ export default function CharacterScreen({ gameState: gs, onNavigate }: Props) {
             { label: 'CARRY', value: `${gs.inventory.capacityUsed}/${gs.inventory.capacityMax}`, color: 'text-primary' },
           ].map(({ label, value, color }) => (
             <div key={label} className="bg-card border border-border p-2 text-center">
-              <p className="text-[5px] text-muted-foreground mb-1" style={PX}>{label}</p>
-              <p className={`text-[7px] font-bold ${color}`} style={PX}>{value}</p>
+              <p className="text-[9px] text-muted-foreground mb-1" style={PX}>{label}</p>
+              <p className={`text-[10px] font-bold ${color}`} style={PX}>{value}</p>
             </div>
           ))}
         </div>
 
         {/* Vitals */}
         <div className="bg-card border border-border p-3 space-y-2">
-          <p className="text-[5px] text-muted-foreground mb-1" style={PX}>VITALS</p>
+          <p className="text-[9px] text-muted-foreground mb-1" style={PX}>VITALS</p>
           <StatBar label="HEALTH" value={player.health} color="hsl(142 60% 45%)" showValue />
           <StatBar label="STAMINA" value={player.stamina} color="hsl(200 70% 55%)" showValue />
         </div>
 
         {/* Stats */}
         <div className="bg-card border border-border p-3 space-y-2">
-          <p className="text-[5px] text-muted-foreground mb-1" style={PX}>STATS</p>
+          <p className="text-[9px] text-muted-foreground mb-1" style={PX}>STATS</p>
           <StatBar label="STR" value={player.stats.strength} max={100} color="hsl(38 80% 50%)" showValue />
           <StatBar label="INT" value={player.stats.intelligence} max={100} color="hsl(200 70% 55%)" showValue />
           <StatBar label="CHA" value={player.stats.charisma} max={100} color="hsl(270 60% 60%)" showValue />
@@ -57,7 +57,7 @@ export default function CharacterScreen({ gameState: gs, onNavigate }: Props) {
 
         {/* Reputation */}
         <div className="bg-card border border-border p-3 space-y-1">
-          <p className="text-[5px] text-muted-foreground mb-1" style={PX}>REPUTATION</p>
+          <p className="text-[9px] text-muted-foreground mb-1" style={PX}>REPUTATION</p>
           {[
             { label: 'PUBLIC', value: `${player.reputation.publicLabel} (${player.reputation.public > 0 ? '+' : ''}${player.reputation.public})`, color: 'text-foreground' },
             { label: 'UNDERWORLD', value: player.reputation.underworldRank, color: 'text-purple-400' },
@@ -65,20 +65,20 @@ export default function CharacterScreen({ gameState: gs, onNavigate }: Props) {
             { label: 'HEAT', value: `${heatLabel} (${player.heat}/100)`, color: heatColor },
           ].map(r => (
             <div key={r.label} className="flex justify-between items-center">
-              <span className="text-[5px] text-muted-foreground ui-text">{r.label}</span>
-              <span className={`text-[5px] ui-text font-bold ${r.color}`}>{r.value}</span>
+              <span className="text-[9px] text-muted-foreground ui-text">{r.label}</span>
+              <span className={`text-[9px] ui-text font-bold ${r.color}`}>{r.value}</span>
             </div>
           ))}
         </div>
 
         {/* Race Info */}
         <div className="bg-card border border-border p-3">
-          <p className="text-[5px] text-muted-foreground mb-1" style={PX}>RACE: {race.name.toUpperCase()}</p>
+          <p className="text-[9px] text-muted-foreground mb-1" style={PX}>RACE: {race.name.toUpperCase()}</p>
           <p className="text-[9px] text-foreground ui-text mb-1">{race.description}</p>
           <p className="text-[9px] text-muted-foreground ui-text italic">{race.flavor}</p>
           <div className="flex flex-wrap gap-1 mt-2">
             {race.tags.map(tag => (
-              <span key={tag} className="text-[5px] px-1 bg-secondary text-secondary-foreground ui-text">{tag}</span>
+              <span key={tag} className="text-[9px] px-1 bg-secondary text-secondary-foreground ui-text">{tag}</span>
             ))}
           </div>
         </div>
@@ -86,7 +86,7 @@ export default function CharacterScreen({ gameState: gs, onNavigate }: Props) {
         {/* Heritage */}
         {(father || mother) && (
           <div className="bg-card border border-border p-3">
-            <p className="text-[5px] text-muted-foreground mb-1" style={PX}>HERITAGE</p>
+            <p className="text-[9px] text-muted-foreground mb-1" style={PX}>HERITAGE</p>
             <div className="space-y-1">
               {father && (
                 <p className="text-[9px] text-foreground ui-text">Father: {father.name} ({RACES[father.raceId].name})</p>

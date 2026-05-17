@@ -3,6 +3,7 @@ import type { RaceId, GameState, Gender } from '../game/types';
 import { RACES } from '../game/data/races';
 import { createNewGame, inheritRace } from '../game/engine';
 import { RACE_IMAGES, startScreen } from '../assets/pixel';
+import { useAudio } from '../hooks/useAudio';
 import SettingsModal from '../components/SettingsModal';
 
 interface Props {
@@ -12,18 +13,14 @@ interface Props {
 
 const RACE_LIST = Object.values(RACES);
 const PX = { fontFamily: 'Press Start 2P, monospace' };
+const UI = { fontFamily: 'Courier New, monospace' };
 
-// BitLife-style compact race card
+// Compact 2-col race card
 function RaceCard({
-  race,
-  selected,
-  accentClass,
-  onClick,
-  testId,
+  race, selected, onClick, testId,
 }: {
   race: typeof RACE_LIST[0];
   selected: boolean;
-  accentClass: string;
   onClick: () => void;
   testId: string;
 }) {
@@ -32,41 +29,28 @@ function RaceCard({
     <button
       data-testid={testId}
       onClick={onClick}
-      className={`flex items-center gap-3 w-full px-3 py-2.5 border-2 transition-all text-left ${
+      className={`flex flex-col items-center gap-1.5 px-2 py-3 border-2 transition-all text-center ${
         selected
-          ? `${accentClass} border-current bg-current/10`
-          : 'border-border bg-card/50 hover:border-border/80'
+          ? 'border-accent bg-accent/15 text-accent'
+          : 'border-border bg-card/60 hover:border-border/80 text-foreground hover:bg-card/80'
       }`}
     >
-      {/* Sprite icon */}
-      <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
-        {img ? (
-          <img
-            src={img}
-            alt={race.name}
-            className="w-10 h-10 object-contain"
-            style={{ imageRendering: 'pixelated' }}
-            loading="lazy"
-          />
-        ) : (
-          <span className="text-xl">{race.emoji}</span>
-        )}
-      </div>
-      {/* Text */}
-      <div className="min-w-0 flex-1">
-        <p
-          className={`text-[7px] font-bold leading-tight truncate ${selected ? '' : 'text-foreground'}`}
-          style={PX}
-        >
-          {race.name.toUpperCase()}
-        </p>
-        <p className="text-[5px] text-muted-foreground leading-tight mt-0.5 truncate" style={{ fontFamily: 'Courier New, monospace' }}>
-          {race.flavor.slice(0, 38)}{race.flavor.length > 38 ? '…' : ''}
-        </p>
-      </div>
-      {/* Check indicator */}
+      {img ? (
+        <img
+          src={img}
+          alt={race.name}
+          className="w-12 h-12 object-contain"
+          style={{ imageRendering: 'pixelated' }}
+          loading="lazy"
+        />
+      ) : (
+        <span className="text-2xl">{race.emoji}</span>
+      )}
+      <p className="text-[8px] font-bold leading-tight" style={PX}>
+        {race.name.toUpperCase()}
+      </p>
       {selected && (
-        <span className="text-[8px] flex-shrink-0" style={PX}>✓</span>
+        <span className="text-[7px] font-bold text-accent" style={PX}>✓ SELECTED</span>
       )}
     </button>
   );
@@ -79,73 +63,105 @@ export default function NewGameScreen({ onStart, onBack }: Props) {
   const [fatherRace, setFatherRace] = useState<RaceId>('goblin');
   const [motherRace, setMotherRace] = useState<RaceId>('elf');
   const [showSettings, setShowSettings] = useState(false);
+  const { playSfx } = useAudio();
 
   const inheritedRaceId = inheritRace(fatherRace, motherRace);
   const inheritedRace = RACES[inheritedRaceId];
 
   const handleStart = () => {
+    playSfx('levelup');
     const state = createNewGame(name.trim() || 'Stranger', gender, fatherRace, motherRace);
     onStart(state);
   };
 
+  const next = (to: typeof step) => { playSfx('click'); setStep(to); };
+  const back = (to: typeof step) => { playSfx('click'); setStep(to); };
+
   const STEPS = ['name', 'gender', 'father', 'mother', 'confirm'];
   const stepIdx = STEPS.indexOf(step);
+
+  const STEP_LABELS: Record<string, string> = {
+    name: 'YOUR NAME',
+    gender: 'YOUR IDENTITY',
+    father: "FATHER'S RACE",
+    mother: "MOTHER'S RACE",
+    confirm: 'YOUR HERITAGE',
+  };
 
   return (
     <div className="relative h-screen flex flex-col overflow-hidden">
       {/* Background */}
-      <img src={startScreen} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: 'center top' }} />
-      <div className="absolute inset-0 bg-black/85" />
+      <img
+        src={startScreen}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ objectPosition: 'center 30%' }}
+      />
+      <div className="absolute inset-0 bg-black/88" />
 
       {/* Header */}
-      <div className="relative z-10 flex justify-between items-center px-4 pt-4 pb-3 flex-shrink-0">
-        <button onClick={onBack} className="text-muted-foreground text-[7px] hover:text-foreground" style={PX}>
+      <div className="relative z-10 flex justify-between items-center px-4 pt-4 pb-3 flex-shrink-0 border-b border-white/10">
+        <button
+          onClick={() => back('name')}
+          className="text-muted-foreground text-[9px] hover:text-foreground py-1"
+          style={PX}
+        >
           ← BACK
         </button>
         <div className="flex items-center gap-3">
-          <div className="flex gap-1">
+          {/* Step dots */}
+          <div className="flex items-center gap-1.5">
             {STEPS.map((s, i) => (
               <div
                 key={s}
-                className={`w-1.5 h-1.5 rounded-full ${i === stepIdx ? 'bg-accent' : i < stepIdx ? 'bg-primary' : 'bg-border'}`}
+                className={`rounded-full transition-all ${
+                  i === stepIdx
+                    ? 'w-3 h-3 bg-accent'
+                    : i < stepIdx
+                      ? 'w-2 h-2 bg-primary'
+                      : 'w-2 h-2 bg-border'
+                }`}
               />
             ))}
           </div>
           <button
             onClick={() => setShowSettings(true)}
-            className="w-7 h-7 flex items-center justify-center border border-white/20 bg-black/40 text-sm"
+            className="w-8 h-8 flex items-center justify-center border border-white/20 bg-black/40 text-base"
           >⚙️</button>
         </div>
       </div>
 
       {/* Step label */}
-      <div className="relative z-10 px-4 pb-2 flex-shrink-0">
-        <h2 className="text-[8px] text-accent" style={PX}>NEW LIFE</h2>
+      <div className="relative z-10 px-4 py-3 flex-shrink-0">
+        <p className="text-[9px] text-muted-foreground" style={PX}>NEW LIFE</p>
+        <h2 className="text-[14px] font-bold text-accent mt-1" style={PX}>
+          {STEP_LABELS[step]}
+        </h2>
       </div>
 
-      {/* Content */}
+      {/* Step content */}
       <div className="relative z-10 flex-1 overflow-y-auto px-4 pb-6">
 
-        {/* STEP: Name */}
+        {/* NAME */}
         {step === 'name' && (
-          <div className="space-y-4">
-            <p className="text-[7px] text-muted-foreground" style={PX}>WHAT IS YOUR NAME?</p>
+          <div className="space-y-5 pt-2">
+            <p className="text-[11px] text-foreground" style={UI}>What do they call you in the streets?</p>
             <input
               data-testid="input-name"
               type="text"
               maxLength={20}
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Enter name..."
-              className="w-full bg-card/80 border-2 border-border text-foreground px-3 py-3 text-[9px] focus:outline-none focus:border-primary"
-              style={PX}
+              placeholder="Enter your name..."
+              className="w-full bg-card/80 border-2 border-border text-foreground px-4 py-4 text-[13px] focus:outline-none focus:border-primary placeholder:text-muted-foreground/60"
+              style={UI}
               autoFocus
-              onKeyDown={e => e.key === 'Enter' && setStep('gender')}
+              onKeyDown={e => e.key === 'Enter' && next('gender')}
             />
             <button
               data-testid="btn-name-next"
-              onClick={() => setStep('gender')}
-              className="w-full py-3 px-4 pixel-border-green bg-primary/20 text-primary text-[8px] font-bold hover:bg-primary/30"
+              onClick={() => next('gender')}
+              className="w-full py-4 px-4 pixel-border-green bg-primary/20 text-primary text-[11px] font-bold hover:bg-primary/35"
               style={PX}
             >
               NEXT →
@@ -153,103 +169,101 @@ export default function NewGameScreen({ onStart, onBack }: Props) {
           </div>
         )}
 
-        {/* STEP: Gender */}
+        {/* GENDER */}
         {step === 'gender' && (
-          <div className="space-y-3">
-            <p className="text-[7px] text-muted-foreground" style={PX}>WHO ARE YOU?</p>
+          <div className="space-y-3 pt-2">
+            <p className="text-[11px] text-foreground mb-4" style={UI}>Choose your identity.</p>
             {(['male', 'female', 'other'] as Gender[]).map(g => (
               <button
                 key={g}
                 data-testid={`btn-gender-${g}`}
                 onClick={() => setGender(g)}
-                className={`w-full py-3 px-4 text-[8px] font-bold transition-colors border-2 ${
+                className={`w-full py-4 px-4 text-[11px] font-bold transition-colors border-2 ${
                   gender === g
                     ? 'border-primary bg-primary/20 text-primary'
-                    : 'border-border bg-card/60 text-muted-foreground hover:text-foreground hover:border-primary/50'
+                    : 'border-border bg-card/60 text-foreground hover:border-primary/50'
                 }`}
                 style={PX}
               >
-                {g === 'male' ? '♂ MALE' : g === 'female' ? '♀ FEMALE' : '◈ OTHER'}
+                {g === 'male' ? '♂  MALE' : g === 'female' ? '♀  FEMALE' : '◈  OTHER'}
               </button>
             ))}
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setStep('name')} className="flex-1 py-2 px-3 border-2 border-border bg-card/60 text-muted-foreground text-[7px]" style={PX}>← BACK</button>
-              <button data-testid="btn-gender-next" onClick={() => setStep('father')} className="flex-1 py-3 px-4 pixel-border-green bg-primary/20 text-primary text-[8px] font-bold" style={PX}>NEXT →</button>
+              <button onClick={() => back('name')} className="flex-1 py-3 border-2 border-border bg-card/60 text-muted-foreground text-[9px]" style={PX}>← BACK</button>
+              <button data-testid="btn-gender-next" onClick={() => next('father')} className="flex-1 py-4 pixel-border-green bg-primary/20 text-primary text-[11px] font-bold" style={PX}>NEXT →</button>
             </div>
           </div>
         )}
 
-        {/* STEP: Father Race */}
+        {/* FATHER RACE */}
         {step === 'father' && (
-          <div>
-            <p className="text-[7px] text-muted-foreground mb-1" style={PX}>FATHER'S RACE</p>
-            <p className="text-[5px] text-muted-foreground mb-3" style={{ fontFamily: 'Courier New, monospace' }}>45% chance you inherit this bloodline.</p>
-            <div className="space-y-1.5 mb-4">
+          <div className="pt-2">
+            <p className="text-[11px] text-muted-foreground mb-4" style={UI}>
+              45% chance you inherit his bloodline.
+            </p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
               {RACE_LIST.map(race => (
                 <RaceCard
                   key={race.id}
                   race={race}
                   selected={fatherRace === race.id}
-                  accentClass="text-accent"
-                  onClick={() => setFatherRace(race.id)}
+                  onClick={() => { playSfx('click'); setFatherRace(race.id); }}
                   testId={`btn-father-${race.id}`}
                 />
               ))}
             </div>
-            <div className="flex gap-2 sticky bottom-0 bg-black/60 py-2">
-              <button onClick={() => setStep('gender')} className="flex-1 py-2 px-3 border-2 border-border bg-card/60 text-muted-foreground text-[7px]" style={PX}>← BACK</button>
-              <button data-testid="btn-father-next" onClick={() => setStep('mother')} className="flex-1 py-3 px-4 pixel-border-accent bg-accent/20 text-accent text-[8px] font-bold" style={PX}>NEXT →</button>
+            <div className="flex gap-2 sticky bottom-0 bg-black/70 py-2 -mx-4 px-4">
+              <button onClick={() => back('gender')} className="flex-1 py-3 border-2 border-border bg-card/60 text-muted-foreground text-[9px]" style={PX}>← BACK</button>
+              <button data-testid="btn-father-next" onClick={() => next('mother')} className="flex-1 py-4 pixel-border-accent bg-accent/20 text-accent text-[11px] font-bold" style={PX}>NEXT →</button>
             </div>
           </div>
         )}
 
-        {/* STEP: Mother Race */}
+        {/* MOTHER RACE */}
         {step === 'mother' && (
-          <div>
-            <p className="text-[7px] text-muted-foreground mb-1" style={PX}>MOTHER'S RACE</p>
-            <p className="text-[5px] text-muted-foreground mb-3" style={{ fontFamily: 'Courier New, monospace' }}>45% chance you inherit this bloodline.</p>
-            <div className="space-y-1.5 mb-4">
+          <div className="pt-2">
+            <p className="text-[11px] text-muted-foreground mb-4" style={UI}>
+              45% chance you inherit her bloodline.
+            </p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
               {RACE_LIST.map(race => (
                 <RaceCard
                   key={race.id}
                   race={race}
                   selected={motherRace === race.id}
-                  accentClass="text-primary"
-                  onClick={() => setMotherRace(race.id)}
+                  onClick={() => { playSfx('click'); setMotherRace(race.id); }}
                   testId={`btn-mother-${race.id}`}
                 />
               ))}
             </div>
-            <div className="flex gap-2 sticky bottom-0 bg-black/60 py-2">
-              <button onClick={() => setStep('father')} className="flex-1 py-2 px-3 border-2 border-border bg-card/60 text-muted-foreground text-[7px]" style={PX}>← BACK</button>
-              <button data-testid="btn-mother-next" onClick={() => setStep('confirm')} className="flex-1 py-3 px-4 pixel-border-green bg-primary/20 text-primary text-[8px] font-bold" style={PX}>NEXT →</button>
+            <div className="flex gap-2 sticky bottom-0 bg-black/70 py-2 -mx-4 px-4">
+              <button onClick={() => back('father')} className="flex-1 py-3 border-2 border-border bg-card/60 text-muted-foreground text-[9px]" style={PX}>← BACK</button>
+              <button data-testid="btn-mother-next" onClick={() => next('confirm')} className="flex-1 py-4 pixel-border-green bg-primary/20 text-primary text-[11px] font-bold" style={PX}>NEXT →</button>
             </div>
           </div>
         )}
 
-        {/* STEP: Confirm */}
+        {/* CONFIRM */}
         {step === 'confirm' && (
-          <div>
-            <p className="text-[7px] text-accent mb-4" style={PX}>YOUR HERITAGE</p>
-
-            {/* Inherited race — large sprite centered */}
-            <div className="flex flex-col items-center gap-3 mb-5 p-4 border-2 border-accent/40 bg-accent/5">
+          <div className="pt-2">
+            {/* Inherited race hero */}
+            <div className="flex flex-col items-center gap-3 mb-5 p-5 border-2 border-accent/50 bg-accent/8">
               {RACE_IMAGES[inheritedRaceId] && (
                 <img
                   src={RACE_IMAGES[inheritedRaceId]}
                   alt={inheritedRace.name}
-                  className="w-24 h-24 object-contain"
+                  className="w-28 h-28 object-contain"
                   style={{ imageRendering: 'pixelated' }}
                 />
               )}
               <div className="text-center">
-                <p className="text-[9px] font-bold text-accent mb-1" style={PX}>{inheritedRace.name.toUpperCase()}</p>
-                <p className="text-[5px] text-muted-foreground" style={{ fontFamily: 'Courier New, monospace' }}>{inheritedRace.flavor}</p>
+                <p className="text-[13px] font-bold text-accent mb-2" style={PX}>{inheritedRace.name.toUpperCase()}</p>
+                <p className="text-[11px] text-muted-foreground" style={UI}>{inheritedRace.flavor}</p>
               </div>
             </div>
 
-            {/* Stats summary */}
-            <div className="bg-card/80 border-2 border-border p-3 mb-4 space-y-2">
+            {/* Summary */}
+            <div className="bg-card/80 border-2 border-border p-4 mb-5 space-y-3">
               {[
                 { label: 'NAME', value: name || 'Stranger' },
                 { label: 'GENDER', value: gender },
@@ -257,18 +271,18 @@ export default function NewGameScreen({ onStart, onBack }: Props) {
                 { label: 'MOTHER', value: RACES[motherRace].name },
               ].map(r => (
                 <div key={r.label} className="flex justify-between items-center">
-                  <span className="text-[5px] text-muted-foreground" style={{ fontFamily: 'Courier New, monospace' }}>{r.label}</span>
-                  <span className="text-[8px] text-foreground font-bold" style={PX}>{r.value}</span>
+                  <span className="text-[10px] text-muted-foreground" style={UI}>{r.label}</span>
+                  <span className="text-[11px] text-foreground font-bold" style={PX}>{r.value}</span>
                 </div>
               ))}
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => setStep('mother')} className="flex-1 py-2 px-3 border-2 border-border bg-card/60 text-muted-foreground text-[7px]" style={PX}>← BACK</button>
+              <button onClick={() => back('mother')} className="flex-1 py-3 border-2 border-border bg-card/60 text-muted-foreground text-[9px]" style={PX}>← BACK</button>
               <button
                 data-testid="btn-start-game"
                 onClick={handleStart}
-                className="flex-1 py-3 px-4 pixel-border-green bg-primary/20 text-primary text-[8px] font-bold"
+                className="flex-1 py-4 pixel-border-green bg-primary/20 text-primary text-[11px] font-bold hover:bg-primary/35"
                 style={PX}
               >
                 BEGIN LIFE

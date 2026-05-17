@@ -7,6 +7,7 @@ import { ITEM_IMAGES } from '../assets/pixel';
 import GameLayout from '../components/GameLayout';
 import BottomNav from '../components/BottomNav';
 import { useBanner } from '../hooks/useBanner';
+import { useAudio } from '../hooks/useAudio';
 
 interface Props {
   gameState: GameState;
@@ -26,6 +27,7 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const { showBanner } = useBanner();
+  const { playSfx } = useAudio();
 
   const market = gs.markets[gs.currentLocationId];
   const location = LOCATIONS[gs.currentLocationId];
@@ -39,8 +41,9 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
   const handleBuy = (itemId: ItemId) => {
     const qty = quantities[itemId] ?? 1;
     const result = buyItem(gs, itemId, qty);
-    if (result.error) showBanner(result.error, 'error');
+    if (result.error) { playSfx("error"); showBanner(result.error, "error"); }
     else {
+      playSfx('buy');
       showBanner(`Bought ${qty}× ${ITEMS[itemId].name}!`, 'success');
       onUpdate(result.state);
       setQty(itemId, 1);
@@ -51,8 +54,9 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
   const handleSell = (itemId: ItemId) => {
     const qty = quantities[itemId] ?? 1;
     const result = sellItem(gs, itemId, qty);
-    if (result.error) showBanner(result.error, 'error');
+    if (result.error) { playSfx("error"); showBanner(result.error, "error"); }
     else {
+      playSfx('sell');
       showBanner(`Sold ${qty}× ${ITEMS[itemId].name}!`, 'success');
       onUpdate(result.state);
       setQty(itemId, 1);
@@ -66,22 +70,22 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
     <GameLayout
       gameState={gs}
       panelExtra={
-        <p className="text-[5px] text-white/60 mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
+        <p className="text-[9px] text-white/60 mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
           {merchant?.name ?? 'Unknown Merchant'} · Black Market
         </p>
       }
     >
       {/* Gold & carry info */}
       <div className="flex items-center justify-between px-3 py-2 bg-card border-b border-border">
-        <p className="text-[6px] text-muted-foreground ui-text">
+        <p className="text-[9px] text-muted-foreground ui-text">
           Carry: <span className="text-foreground">{gs.inventory.capacityUsed}/{gs.inventory.capacityMax}</span>
         </p>
-        <p className="text-[8px] font-bold text-accent" style={PX}>{gs.player.money}g</p>
+        <p className="text-[11px] font-bold text-accent" style={PX}>{gs.player.money}g</p>
       </div>
 
       <div className="px-3 py-2 space-y-1 pb-20">
         {/* BUY section */}
-        <p className="text-[5px] text-muted-foreground mt-1 mb-2" style={PX}>── MARKET STOCK ──</p>
+        <p className="text-[9px] text-muted-foreground mt-1 mb-2" style={PX}>── MARKET STOCK ──</p>
         {ALL_ITEM_IDS.map(itemId => {
           const item = ITEMS[itemId];
           const stock = market?.stock[itemId] ?? 0;
@@ -109,18 +113,18 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
-                    <p className="text-[6px] font-bold text-foreground truncate" style={PX}>{item.name.toUpperCase()}</p>
-                    {isNative && <span className="text-[4px] text-accent bg-accent/20 px-1 py-0.5 ui-text flex-shrink-0">★ NATIVE</span>}
+                    <p className="text-[9px] font-bold text-foreground truncate" style={PX}>{item.name.toUpperCase()}</p>
+                    {isNative && <span className="text-[11px] text-accent bg-accent/20 px-1 py-0.5 ui-text flex-shrink-0">★ NATIVE</span>}
                   </div>
-                  <p className={`text-[5px] ui-text ${RARITY_COLORS[item.rarity]}`}>{item.rarity}</p>
+                  <p className={`text-[9px] ui-text ${RARITY_COLORS[item.rarity]}`}>{item.rarity}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-[7px] font-bold text-accent" style={PX}>{price}g</p>
-                  <p className="text-[5px] text-muted-foreground ui-text">
+                  <p className="text-[10px] font-bold text-accent" style={PX}>{price}g</p>
+                  <p className="text-[9px] text-muted-foreground ui-text">
                     {stock > 0 ? `×${stock}` : 'sold out'}
                   </p>
                 </div>
-                <span className="text-muted-foreground text-[8px] ml-1">{isExpanded ? '▲' : '▼'}</span>
+                <span className="text-muted-foreground text-[11px] ml-1">{isExpanded ? '▲' : '▼'}</span>
               </div>
 
               {/* Expanded: buy & sell controls */}
@@ -134,15 +138,15 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
                   {/* BUY row */}
                   {stock > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[5px] text-muted-foreground ui-text w-6">BUY</span>
+                      <span className="text-[9px] text-muted-foreground ui-text w-6">BUY</span>
                       <button onClick={() => setQty(itemId, qty - 1)} className="w-6 h-6 bg-secondary border border-border text-foreground text-[10px] hover:bg-card flex items-center justify-center">-</button>
-                      <span className="text-[7px] text-foreground w-5 text-center" style={PX}>{qty}</span>
+                      <span className="text-[10px] text-foreground w-5 text-center" style={PX}>{qty}</span>
                       <button onClick={() => setQty(itemId, Math.min(qty + 1, stock))} className="w-6 h-6 bg-secondary border border-border text-foreground text-[10px] hover:bg-card flex items-center justify-center">+</button>
                       <button
                         data-testid={`btn-buy-${itemId}`}
                         onClick={() => handleBuy(itemId)}
                         disabled={!canAfford || !hasStock}
-                        className="ml-auto py-1 px-2 text-[6px] bg-primary/20 border border-primary text-primary hover:bg-primary/30 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="ml-auto py-1 px-2 text-[9px] bg-primary/20 border border-primary text-primary hover:bg-primary/30 disabled:opacity-40 disabled:cursor-not-allowed"
                         style={PX}
                       >
                         BUY {price * qty}g
@@ -153,15 +157,15 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
                   {/* SELL row (if owned) */}
                   {(gs.inventory.items[itemId] ?? 0) > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[5px] text-muted-foreground ui-text w-6">SELL</span>
+                      <span className="text-[9px] text-muted-foreground ui-text w-6">SELL</span>
                       <button onClick={() => setQty(itemId, qty - 1)} className="w-6 h-6 bg-secondary border border-border text-foreground text-[10px] hover:bg-card flex items-center justify-center">-</button>
-                      <span className="text-[7px] text-foreground w-5 text-center" style={PX}>{qty}</span>
+                      <span className="text-[10px] text-foreground w-5 text-center" style={PX}>{qty}</span>
                       <button onClick={() => setQty(itemId, Math.min(qty + 1, gs.inventory.items[itemId] ?? 0))} className="w-6 h-6 bg-secondary border border-border text-foreground text-[10px] hover:bg-card flex items-center justify-center">+</button>
                       <button
                         data-testid={`btn-sell-${itemId}`}
                         onClick={() => handleSell(itemId)}
                         disabled={(gs.inventory.items[itemId] ?? 0) < qty}
-                        className="ml-auto py-1 px-2 text-[6px] bg-accent/20 border border-accent text-accent hover:bg-accent/30 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="ml-auto py-1 px-2 text-[9px] bg-accent/20 border border-accent text-accent hover:bg-accent/30 disabled:opacity-40 disabled:cursor-not-allowed"
                         style={PX}
                       >
                         SELL {price * qty}g
@@ -170,7 +174,7 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
                   )}
 
                   {stock === 0 && (gs.inventory.items[itemId] ?? 0) === 0 && (
-                    <p className="text-[5px] text-muted-foreground ui-text">Out of stock. Nothing to sell.</p>
+                    <p className="text-[9px] text-muted-foreground ui-text">Out of stock. Nothing to sell.</p>
                   )}
                 </div>
               )}
@@ -181,7 +185,7 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
         {/* My inventory quick view */}
         {ownedItems.length > 0 && (
           <>
-            <p className="text-[5px] text-muted-foreground mt-3 mb-1" style={PX}>── YOUR INVENTORY ──</p>
+            <p className="text-[9px] text-muted-foreground mt-3 mb-1" style={PX}>── YOUR INVENTORY ──</p>
             <div className="flex flex-wrap gap-2">
               {ownedItems.map(id => {
                 const img = ITEM_IMAGES[id];
@@ -193,8 +197,8 @@ export default function MarketScreen({ gameState: gs, onUpdate, onNavigate }: Pr
                     className="flex items-center gap-1 bg-card border border-border px-2 py-1 hover:border-accent/50 transition-all"
                   >
                     {img && <img src={img} alt={ITEMS[id].name} className="w-5 h-5 object-contain" style={{imageRendering:"pixelated"}} />}
-                    <span className="text-[5px] text-accent ui-text">{price}g</span>
-                    <span className="text-[5px] text-foreground ui-text">×{gs.inventory.items[id]}</span>
+                    <span className="text-[9px] text-accent ui-text">{price}g</span>
+                    <span className="text-[9px] text-foreground ui-text">×{gs.inventory.items[id]}</span>
                   </button>
                 );
               })}
