@@ -22,7 +22,9 @@ const AudioCtx = createContext<AudioContextValue>({
 // "Black Market Docks" by Sebastian Fries (Suno AI)
 // https://suno.com/s/JUvCBuxn90rkNkBZ
 // Copyright © Sebastian Fries. All rights reserved.
-const MUSIC_SRC = '/black_market_docks.mp3';
+// Use BASE_URL so the path is always relative to the app's root,
+// regardless of whether it's deployed at / or a subdirectory (e.g. /game/).
+const MUSIC_SRC = `${import.meta.env.BASE_URL}black_market_docks.mp3`;
 
 // ─── SFX via Web Audio API ───────────────────────────────────────────────────
 

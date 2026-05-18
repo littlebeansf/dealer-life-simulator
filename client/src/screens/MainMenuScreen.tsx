@@ -53,7 +53,7 @@ export default function MainMenuScreen({ saves, onNewGame, onLoad, onDeleteSave 
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent pointer-events-none" style={{ height: '35%' }} />
 
       {/* Top controls */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <button onClick={toggleMusic} title={musicEnabled ? 'Mute music' : 'Enable music'}
           className="w-9 h-9 flex items-center justify-center border border-white/25 bg-black/50 hover:bg-black/70 transition-colors text-base">
           {musicEnabled ? '🎵' : '🔇'}
