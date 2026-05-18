@@ -83,13 +83,13 @@ const TYPE_ICON: Record<TickerItem['type'], string> = {
 // The marquee CSS — injected once
 const MARQUEE_CSS = `
 @keyframes ticker-scroll {
-  0%   { transform: translateX(100%); }
+  0%   { transform: translateX(100vw); }
   100% { transform: translateX(-100%); }
 }
 .ticker-marquee {
   display: inline-block;
   white-space: nowrap;
-  animation: ticker-scroll 18s linear infinite;
+  animation: ticker-scroll 14s linear 1 forwards;
   will-change: transform;
 }
 `;
@@ -132,13 +132,13 @@ export function TickerBar({ gameState }: { gameState: GameState }) {
     }
   }, [gameState.currentYear]);
 
-  // Rotate item every 10s (longer display)
+  // Rotate item after animation completes (14s scroll + 2s pause)
   useEffect(() => {
     if (items.length === 0) return;
     const timer = setInterval(() => {
       setActiveIdx(i => (i + 1) % items.length);
       setKey(k => k + 1); // restart animation on new item
-    }, 10000);
+    }, 16000);
     return () => clearInterval(timer);
   }, [items.length]);
 
@@ -173,8 +173,6 @@ export function TickerBar({ gameState }: { gameState: GameState }) {
             lineHeight: '26px',
           }}
         >
-          {item.text}
-          &nbsp;&nbsp;&nbsp;&nbsp;❖&nbsp;&nbsp;&nbsp;&nbsp;
           {item.text}
         </span>
       </div>
