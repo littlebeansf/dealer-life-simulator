@@ -6,6 +6,11 @@
 
 @layer base {
   :root {
+    /* === FONT SIZE SCALING (controlled by useFontSize hook) === */
+    --fs-scale-px: 1;
+    --fs-scale-ui: 1;
+    --btn-min-h: 36px;
+
     /* === DARK MODE (default) — dark fantasy pixel theme === */
     --background: 220 15% 8%;
     --foreground: 60 20% 85%;
@@ -117,14 +122,21 @@
 /* Pixel font */
 .pixel-text {
   font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--fs-scale-px));
   line-height: 1.8;
 }
 
 .ui-text {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs-scale-ui));
   line-height: 1.5;
+}
+
+/* Font-size scaled button helper */
+.scaled-btn {
+  min-height: var(--btn-min-h);
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(10px * var(--fs-scale-px));
 }
 
 /* Readable button / label sizes */

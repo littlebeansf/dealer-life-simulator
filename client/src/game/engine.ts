@@ -16,6 +16,9 @@ import type {
   UnderworldRank,
   Activity,
   GameEvent,
+  Gang,
+  GangTier,
+  GangAlignment,
 } from './types';
 import { RACES } from './data/races';
 import { ITEMS, ALL_ITEM_IDS } from './data/items';
@@ -41,7 +44,15 @@ export async function loadGame(): Promise<GameState | null> {
     const res = await fetch('/api/save');
     const json = await res.json();
     if (!json.exists) return null;
-    return json.data as GameState;
+    const data = json.data as GameState;
+    // Migration: ensure gangs exists (for saves created before gang system)
+    if (!data.gangs) {
+      const gangsList: Gang[] = [];
+      for (let i = 0; i < 6; i++) gangsList.push(generateGang(i));
+      data.gangs = {};
+      for (const g of gangsList) data.gangs[g.id] = g;
+    }
+    return data;
   } catch {
     return null;
   }
@@ -537,7 +548,10 @@ export function travel(state: GameState, toLocationId: LocationId): GameState {
 }
 
 // ===== BUY/SELL =====
+export const MIN_AGE_TRADE = 6;  // cannot buy/sell before this age
+
 export function buyItem(state: GameState, itemId: ItemId, quantity: number): { state: GameState; error?: string } {
+  if (state.player.age < MIN_AGE_TRADE) return { state, error: `You must be at least age ${MIN_AGE_TRADE} to trade.` };
   const market = state.markets[state.currentLocationId];
   if (!market) return { state, error: 'No market here' };
 
@@ -599,6 +613,7 @@ export function buyItem(state: GameState, itemId: ItemId, quantity: number): { s
 }
 
 export function sellItem(state: GameState, itemId: ItemId, quantity: number): { state: GameState; error?: string } {
+  if (state.player.age < MIN_AGE_TRADE) return { state, error: `You must be at least age ${MIN_AGE_TRADE} to trade.` };
   const market = state.markets[state.currentLocationId];
   if (!market) return { state, error: 'No market here' };
 
@@ -1106,6 +1121,246 @@ export function generateRumor(): string {
   return RUMORS[rand(0, RUMORS.length - 1)];
 }
 
+// ===== GANG SYSTEM =====
+
+const GANG_PREFIXES = ['Shadow', 'Iron', 'Blood', 'Bone', 'Venom', 'Night', 'Cinder', 'Storm', 'Sable', 'Void', 'Steel', 'Plague', 'Ember', 'Ruin', 'Thorn'];
+const GANG_SUFFIXES = ['Fang', 'Claw', 'Blade', 'Pact', 'Circle', 'Hand', 'Oath', 'Order', 'Horde', 'Crown', 'Wyrm', 'Knives', 'Rats', 'Wolves', 'Eye'];
+const GANG_EMOJIS = ['🐺', '🗡️', '💀', '🔥', '🐍', '🦂', '⚔️', '🩸', '🌑', '🦴', '🖤', '🐉', '🕷️', '🌙', '⚡'];
+const GANG_SPECIALTIES = ['Smuggling', 'Enforcement', 'Intelligence', 'Counterfeiting', 'Protection Racket', 'Assassination', 'Trafficking', 'Money Laundering', 'Territorial Control', 'Black Market'];
+const GANG_TRAITS = ['Brutal', 'Disciplined', 'Cowardly', 'Cunning', 'Paranoid', 'Loyal', 'Ambitious', 'Ruthless', 'Secretive', 'Reckless', 'Tactical', 'Fanatical'];
+
+export function generateGangName(): string {
+  const pre = GANG_PREFIXES[rand(0, GANG_PREFIXES.length - 1)];
+  const suf = GANG_SUFFIXES[rand(0, GANG_SUFFIXES.length - 1)];
+  return `The ${pre} ${suf}`;
+}
+
+export function generateGang(index: number): Gang {
+  const raceIds = Object.keys(RACES) as RaceId[];
+  const raceId = raceIds[rand(0, raceIds.length - 1)];
+  const locs = LOCATION_LIST;
+  const locationId = locs[index % locs.length].id;
+  const tier = rand(1, 3) as GangTier;
+  const alignment: GangAlignment = chance(0.5) ? 'neutral' : chance(0.6) ? 'hostile' : 'friendly';
+
+  return {
+    id: `gang_${index}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    name: generateGangName(),
+    emoji: GANG_EMOJIS[rand(0, GANG_EMOJIS.length - 1)],
+    raceId,
+    locationId,
+    tier,
+    size: rand(tier * 3, tier * 8),
+    alignment,
+    respect: alignment === 'friendly' ? rand(30, 60) : alignment === 'hostile' ? rand(0, 20) : rand(10, 40),
+    fear: rand(0, 25),
+    members: [],
+    isPlayerGang: false,
+    playerHireCount: 0,
+    traits: [GANG_TRAITS[rand(0, 5)], GANG_TRAITS[rand(6, 11)]],
+    specialty: GANG_SPECIALTIES[rand(0, GANG_SPECIALTIES.length - 1)],
+    description: `A tier-${tier} gang that controls parts of ${LOCATIONS[locationId].name}. Known for ${GANG_SPECIALTIES[rand(0, GANG_SPECIALTIES.length - 1)].toLowerCase()}.`,
+    isAlive: true,
+  };
+}
+
+export function doGangAction(state: GameState, gangId: string, action: string): GameState {
+  const gang = state.gangs[gangId];
+  if (!gang || !gang.isAlive) return state;
+
+  let s = { ...state };
+  let g = { ...gang };
+  let logText = '';
+  let logEmoji = '⚔️';
+
+  const adjRep = (delta: number) => {
+    g.respect = Math.max(0, Math.min(100, g.respect + delta));
+  };
+  const adjFear = (delta: number) => {
+    g.fear = Math.max(0, Math.min(100, g.fear + delta));
+  };
+  const adjMoney = (delta: number) => {
+    s.player = { ...s.player, money: Math.max(0, s.player.money + delta) };
+  };
+  const adjHeat = (delta: number) => {
+    s.player = { ...s.player, heat: Math.max(0, Math.min(100, s.player.heat + delta)) };
+  };
+  const adjUW = (delta: number) => {
+    const newUW = Math.max(0, Math.min(100, s.player.reputation.underworld + delta));
+    s.player = { ...s.player, reputation: { ...s.player.reputation, underworld: newUW, underworldRank: getUnderworldRank(newUW) } };
+  };
+
+  switch (action) {
+    case 'approach':
+      adjRep(rand(5, 12));
+      s.player = { ...s.player, stamina: Math.max(0, s.player.stamina - 3) };
+      logText = `You approached ${g.name} cautiously. They acknowledged your presence. Respect gained.`;
+      logEmoji = '🤝';
+      if (g.alignment === 'hostile' && g.respect < 30) {
+        g.alignment = 'neutral';
+      }
+      break;
+
+    case 'offer_deal':
+      if (g.respect >= 25) {
+        adjRep(rand(8, 15));
+        adjUW(rand(5, 10));
+        adjHeat(rand(3, 7));
+        g.alignment = g.alignment === 'hostile' ? 'neutral' : g.alignment === 'neutral' ? 'friendly' : 'allied';
+        logText = `You struck a deal with ${g.name}. Territory and trade agreed. Underworld rep grows.`;
+        logEmoji = '🤝';
+      } else {
+        logText = `${g.name} didn't take your offer seriously. Gain more respect first.`;
+      }
+      break;
+
+    case 'hire_soldier': {
+      const cost = 50 + g.tier * 25;
+      if (s.player.money >= cost) {
+        adjMoney(-cost);
+        g.playerHireCount += 1;
+        g.size = Math.max(1, g.size - 1); // they lose one to your service
+        adjRep(rand(3, 7));
+        adjUW(rand(5, 10));
+        logText = `You hired a ${g.name} soldier for ${cost}g. Your crew grows. Underworld rep up.`;
+        logEmoji = '🪖';
+      } else {
+        logText = `Not enough gold to hire. Need ${cost}g.`;
+      }
+      break;
+    }
+
+    case 'expand_territory': {
+      const cost = 100 + g.tier * 50;
+      if (s.player.money >= cost) {
+        adjMoney(-cost);
+        g.size += rand(2, 5);
+        g.tier = Math.min(5, g.tier + (g.size >= g.tier * 10 ? 1 : 0)) as GangTier;
+        adjRep(rand(10, 18));
+        adjUW(rand(8, 15));
+        logText = `You funded ${g.name}'s expansion. Their territory grows. You gain influence.`;
+        logEmoji = '🗺️';
+      } else {
+        logText = `Expansion costs ${cost}g. Not enough funds.`;
+      }
+      break;
+    }
+
+    case 'pay_tribute': {
+      const tribute = g.tier * rand(15, 30);
+      if (s.player.money >= tribute) {
+        adjMoney(-tribute);
+        adjHeat(-rand(5, 12));
+        adjRep(rand(5, 10));
+        if (g.alignment === 'hostile') g.alignment = 'neutral';
+        logText = `You paid ${tribute}g tribute to ${g.name}. Heat cooled. They'll leave you alone.`;
+        logEmoji = '💰';
+      } else {
+        logText = `Can't afford tribute to ${g.name} (${tribute}g). Expect trouble.`;
+      }
+      break;
+    }
+
+    case 'declare_war':
+      g.alignment = 'war';
+      adjFear(rand(5, 15));
+      adjHeat(rand(10, 20));
+      adjUW(rand(3, 8));
+      logText = `You declared war on ${g.name}! Their territory is now hostile to you. Expect attacks.`;
+      logEmoji = '⚔️';
+      break;
+
+    case 'assassinate_boss': {
+      if (g.alignment !== 'war' && g.alignment !== 'hostile') {
+        logText = `You can only assassinate a boss at war or in open conflict.`;
+        break;
+      }
+      const strength = s.player.stats.strength + s.player.reputation.fear * 0.5;
+      const success = chance(Math.min(0.85, strength / 120));
+      adjHeat(rand(15, 25));
+      adjMoney(-rand(30, 80)); // bribes, expenses
+      if (success) {
+        g.size = Math.max(1, Math.floor(g.size * 0.5));
+        g.tier = Math.max(1, g.tier - 1) as GangTier;
+        adjFear(rand(20, 35));
+        adjRep(rand(10, 20));
+        adjUW(rand(10, 20));
+        g.alignment = 'neutral'; // leaderless, falls back
+        logText = `SUCCESS — you eliminated ${g.name}'s boss. The gang is in chaos. Size halved.`;
+        logEmoji = '💀';
+      } else {
+        s.player = { ...s.player, health: Math.max(1, s.player.health - rand(15, 30)) };
+        g.size += rand(1, 3); // they rally after the attempt
+        logText = `FAILED — the assassination attempt on ${g.name} failed. You barely escaped. Health lost.`;
+        logEmoji = '💀';
+      }
+      break;
+    }
+
+    case 'bribe_gang': {
+      const bribeCost = g.tier * rand(20, 50);
+      if (s.player.money >= bribeCost) {
+        adjMoney(-bribeCost);
+        adjRep(rand(8, 16));
+        adjHeat(-rand(3, 7));
+        if (g.alignment === 'hostile' && g.respect >= 50) g.alignment = 'neutral';
+        logText = `You bribed ${g.name} with ${bribeCost}g. Respect gained, heat cooled.`;
+        logEmoji = '💰';
+      } else {
+        logText = `Not enough gold to bribe ${g.name}. (${bribeCost}g needed)`;
+      }
+      break;
+    }
+
+    case 'poach_member': {
+      if (g.alignment === 'allied') {
+        logText = `You can't poach from an allied gang — that would break the alliance.`;
+        break;
+      }
+      const cost = 40 + g.tier * 20;
+      if (s.player.money >= cost) {
+        adjMoney(-cost);
+        if (chance(0.6)) {
+          g.size = Math.max(1, g.size - 1);
+          g.playerHireCount += 1;
+          adjRep(-rand(5, 10)); // they resent the poaching
+          adjUW(rand(5, 10));
+          logText = `You successfully poached a ${g.name} member for ${cost}g. They resent you for it.`;
+          logEmoji = '🕵️';
+        } else {
+          adjRep(-rand(8, 15));
+          adjHeat(rand(5, 10));
+          logText = `Poaching attempt failed. ${g.name} found out and they're angry.`;
+          logEmoji = '🕵️';
+        }
+      } else {
+        logText = `Poaching costs ${cost}g. Not enough.`;
+      }
+      break;
+    }
+
+    default:
+      logText = `You interacted with ${g.name}.`;
+  }
+
+  // Auto-update alignment based on respect
+  if (g.alignment !== 'war') {
+    if (g.respect >= 70) g.alignment = 'allied';
+    else if (g.respect >= 40) g.alignment = 'friendly';
+    else if (g.respect >= 15) g.alignment = 'neutral';
+    else if (g.respect < 10 && g.alignment === 'neutral') g.alignment = 'hostile';
+  }
+
+  s.gangs = { ...s.gangs, [gangId]: g };
+  s.eventLog = [
+    { id: `gang_${Date.now()}`, age: s.player.age, text: logText, type: 'event', emoji: logEmoji },
+    ...s.eventLog,
+  ];
+
+  void saveGame(s);
+  return s;
+}
+
 // ===== NEW GAME =====
 export function createNewGame(
   playerName: string,
@@ -1130,6 +1385,14 @@ export function createNewGame(
 
   // Seed a rival
   const rival = generateRival();
+
+  // Seed 6 random gangs spread across locations
+  const gangsList: Gang[] = [];
+  for (let i = 0; i < 6; i++) {
+    gangsList.push(generateGang(i));
+  }
+  const gangs: Record<string, Gang> = {};
+  for (const g of gangsList) { gangs[g.id] = g; }
 
   const people: Record<string, Person> = {
     [father.id]: father,
@@ -1193,6 +1456,7 @@ export function createNewGame(
     currentLocationId: startLocation,
     markets,
     people,
+    gangs,
     inventory,
     eventLog: [birthLog],
     flags: {},

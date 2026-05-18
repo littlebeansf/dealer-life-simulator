@@ -16,6 +16,7 @@ const NAV_ITEMS: { id: GameState['screen']; label: string; emoji: string }[] = [
   { id: 'map', label: 'Map', emoji: '🗺️' },
   { id: 'activities', label: 'Do', emoji: '⚡' },
   { id: 'people', label: 'Ppl', emoji: '👥' },
+  { id: 'gangs', label: 'Gangs', emoji: '⚔️' },
 ];
 
 export default function BottomNav({ current, onNavigate }: Props) {

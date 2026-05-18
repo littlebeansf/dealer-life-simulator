@@ -49,7 +49,48 @@ export type PersonRole =
   | 'lover'
   | 'enemy'
   | 'contact'
-  | 'informant';
+  | 'informant'
+  | 'gang_member';
+
+// ── GANG SYSTEM ──────────────────────────────────────────────────────────────
+export type GangAlignment = 'neutral' | 'friendly' | 'hostile' | 'allied' | 'war';
+export type GangTier = 1 | 2 | 3 | 4 | 5; // 1 = street gang, 5 = dominant cartel
+
+export interface GangMember {
+  personId: string;        // reference to people record
+  rank: 'grunt' | 'soldier' | 'lieutenant' | 'boss';
+}
+
+export interface Gang {
+  id: string;
+  name: string;
+  emoji: string;
+  raceId: RaceId;          // dominant race
+  locationId: LocationId;  // home turf
+  tier: GangTier;          // 1–5 power level
+  size: number;            // number of members (affects power)
+  alignment: GangAlignment;
+  respect: number;         // 0–100 — player's standing with them
+  fear: number;            // 0–100 — how afraid of player
+  members: GangMember[];   // key NPCs
+  isPlayerGang: boolean;   // if player founded/leads this
+  playerHireCount: number; // how many members player hired
+  traits: string[];        // e.g. 'Brutal', 'Disciplined', 'Cowardly'
+  specialty: string;       // e.g. 'Smuggling', 'Enforcement', 'Intelligence'
+  description: string;
+  isAlive: boolean;        // false = gang was wiped out
+}
+
+export type GangAction =
+  | 'approach'       // open dialogue, gain respect
+  | 'offer_deal'     // propose trade/territory
+  | 'hire_soldier'   // pay to recruit into gang
+  | 'expand_territory' // spend money to grow their power on your behalf
+  | 'pay_tribute'    // pay regularly to stay safe (if hostile)
+  | 'declare_war'    // start open conflict
+  | 'assassinate_boss' // high risk, remove leader
+  | 'bribe_gang'     // gain favour with gold
+  | 'poach_member';  // steal a member from rival gang
 
 export type RelationshipStatus =
   | 'Beloved'
@@ -231,6 +272,7 @@ export interface GameState {
   currentLocationId: LocationId;
   markets: Record<LocationId, MarketState>;
   people: Record<string, Person>;
+  gangs: Record<string, Gang>;
   inventory: Inventory;
   eventLog: EventLogEntry[];
   flags: Record<string, boolean | number | string>;
@@ -256,6 +298,7 @@ export type GameScreen =
   | 'activities'
   | 'people'
   | 'person_detail'
+  | 'gangs'
   | 'death';
 
 export interface Race {

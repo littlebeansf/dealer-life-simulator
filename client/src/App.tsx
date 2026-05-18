@@ -11,6 +11,7 @@ import MapScreen from './screens/MapScreen';
 import ActivitiesScreen from './screens/ActivitiesScreen';
 import PeopleScreen from './screens/PeopleScreen';
 import PersonDetailScreen from './screens/PersonDetailScreen';
+import GangsScreen from './screens/GangsScreen';
 import DeathScreen from './screens/DeathScreen';
 import EventModal from './components/EventModal';
 
@@ -158,6 +159,8 @@ export default function App() {
             onNavigate={navigate}
           />
         );
+      case 'gangs':
+        return <GangsScreen gameState={gs} onUpdate={updateState} onNavigate={navigate} />;
       default:
         return <MainScreen gameState={gs} onUpdate={updateState} onNavigate={navigate} />;
     }

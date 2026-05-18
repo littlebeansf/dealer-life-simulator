@@ -53,6 +53,91 @@ export const PERSON_ACTIONS: PersonAction[] = [
   { id: 'betray',       label: 'BETRAY',       emoji: '🗡️', desc: 'Sell them out. Big money gain, destroy trust forever.',     category: 'conflict' },
 ];
 
+// ── Per-role action restrictions ──────────────────────────────────────────────────────
+// Actions allowed per role. Anything not in the list is BLOCKED for that role.
+type PersonRole = 'family' | 'merchant' | 'dealer' | 'rival' | 'friend' | 'lover' | 'enemy' | 'contact' | 'informant' | 'gang_member';
+
+const ROLE_ALLOWED_ACTIONS: Record<PersonRole, string[]> = {
+  family: [
+    'talk', 'compliment', 'apologize', 'give_gift',
+    // No romance with family. No conflict. Limited business.
+    'loan_gold', 'collect_debt',
+  ],
+  merchant: [
+    'talk', 'compliment', 'apologize', 'share_rumor', 'give_gift', 'ask_rumor',
+    'go_drink', 'bribe', 'loan_gold', 'collect_debt',
+    // No romantic/intimate. Conflict allowed but frowned upon.
+    'insult', 'threaten',
+  ],
+  dealer: [
+    'talk', 'compliment', 'apologize', 'share_rumor', 'give_gift', 'ask_rumor',
+    'go_drink', 'propose_partnership', 'bribe', 'loan_gold', 'collect_debt', 'extort',
+    'insult', 'threaten', 'fight', 'betray',
+  ],
+  rival: [
+    'talk', 'apologize', 'share_rumor', 'give_gift',
+    'bribe', 'extort',
+    'insult', 'threaten', 'fight', 'betray',
+  ],
+  friend: [
+    'talk', 'compliment', 'apologize', 'share_rumor', 'give_gift', 'ask_rumor',
+    'flirt', 'go_drink', 'make_love', 'propose_partnership',
+    'bribe', 'loan_gold', 'collect_debt',
+    'insult', 'threaten', 'betray',
+  ],
+  lover: [
+    'talk', 'compliment', 'apologize', 'give_gift',
+    'flirt', 'go_drink', 'make_love',
+    'loan_gold', 'collect_debt',
+    'insult', 'betray',
+  ],
+  enemy: [
+    'talk', 'apologize', 'bribe',
+    'insult', 'threaten', 'fight', 'betray', 'extort',
+  ],
+  contact: [
+    'talk', 'compliment', 'apologize', 'share_rumor', 'give_gift', 'ask_rumor',
+    'go_drink', 'bribe', 'loan_gold', 'collect_debt',
+    'insult', 'threaten',
+  ],
+  informant: [
+    'talk', 'compliment', 'give_gift', 'ask_rumor', 'share_rumor',
+    'bribe', 'loan_gold', 'collect_debt', 'extort',
+    'threaten',
+  ],
+  gang_member: [
+    'talk', 'compliment', 'give_gift', 'bribe',
+    'loan_gold', 'collect_debt', 'extort',
+    'insult', 'threaten', 'fight', 'betray',
+  ],
+};
+
+// Age gates on categories
+const AGE_GATE_CATEGORIES: Record<string, number> = {
+  romance: 16,   // romantic/intimate actions require age 16+
+  conflict: 12,  // fighting/threatening require age 12+
+  business: 10,  // business dealings require age 10+
+};
+
+export function isActionAllowed(
+  actionId: string,
+  category: PersonAction['category'],
+  role: PersonRole,
+  playerAge: number,
+): { allowed: boolean; reason?: string } {
+  // Age gate check
+  const minAge = AGE_GATE_CATEGORIES[category];
+  if (minAge && playerAge < minAge) {
+    return { allowed: false, reason: `Age ≥${minAge} required` };
+  }
+  // Role check
+  const allowed = ROLE_ALLOWED_ACTIONS[role] ?? [];
+  if (!allowed.includes(actionId)) {
+    return { allowed: false, reason: `Not with a ${role}` };
+  }
+  return { allowed: true };
+}
+
 const CATEGORY_LABEL: Record<string, string> = {
   social:   '── SOCIAL ──',
   romance:  '── ROMANCE ──',
@@ -215,16 +300,19 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
                     if (action.id === 'propose_partnership' && person.trust < 60) blockedReason = 'Trust<60';
                     if (action.id === 'collect_debt' && person.debtToPlayer <= 0) blockedReason = 'No debt';
                     if (action.id === 'extort' && person.fear < 30) blockedReason = 'Fear<30';
-                    const isBlocked = !!blockedReason;
+                    // Role + age gate check
+                    const roleCheck = isActionAllowed(action.id, action.category, person.role as PersonRole, gs.player.age);
+                    const finalBlocked = !!blockedReason || !roleCheck.allowed;
+                    const finalReason = blockedReason || roleCheck.reason || '';
 
                     return (
                       <button
                         key={action.id}
                         data-testid={`action-${action.id}`}
-                        onClick={() => !isBlocked && handleAction(action.id)}
+                        onClick={() => !finalBlocked && handleAction(action.id)}
                         className={`bg-card border text-left transition-all p-2 ${
-                          isBlocked
-                            ? 'border-border opacity-50 cursor-not-allowed'
+                          finalBlocked
+                            ? 'border-border opacity-40 cursor-not-allowed'
                             : 'border-border hover:border-primary/50 active:bg-primary/10 cursor-pointer'
                         }`}
                       >
@@ -233,11 +321,11 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
                           <span className="text-[8px] font-bold text-foreground truncate" style={PX}>{action.label}</span>
                         </div>
                         <p className="text-[10px] text-muted-foreground ui-text leading-tight">{action.desc}</p>
-                        {action.cost && !blockedReason && (
+                        {action.cost && !finalReason && (
                           <span className="text-[9px] text-accent ui-text mt-0.5 block">{action.cost}</span>
                         )}
-                        {blockedReason && (
-                          <span className="text-[9px] text-destructive ui-text mt-0.5 block">{blockedReason}</span>
+                        {finalReason && (
+                          <span className="text-[9px] text-destructive ui-text mt-0.5 block">{finalReason}</span>
                         )}
                       </button>
                     );

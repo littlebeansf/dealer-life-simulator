@@ -1,5 +1,6 @@
 import { useAudio } from '../hooks/useAudio';
 import { useTheme } from '../hooks/useTheme';
+import { useFontSize } from '../hooks/useFontSize';
 
 const PX = { fontFamily: 'Press Start 2P, monospace' };
 
@@ -10,6 +11,9 @@ interface Props {
 export default function SettingsModal({ onClose }: Props) {
   const { musicEnabled, volume, toggleMusic, setVolume } = useAudio();
   const { theme, toggle: toggleTheme } = useTheme();
+  const { level, increase, decrease, canIncrease, canDecrease } = useFontSize();
+
+  const SIZE_LABELS: Record<number, string> = { 1: 'XS', 2: 'SM', 3: 'MD', 4: 'LG', 5: 'XL' };
 
   return (
     <div
@@ -31,6 +35,58 @@ export default function SettingsModal({ onClose }: Props) {
 
         {/* Body */}
         <div className="p-4 space-y-5">
+
+          {/* Font Size */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-[11px] text-foreground mb-0.5" style={PX}>TEXT SIZE</p>
+                <p className="text-[9px] text-muted-foreground" style={{ fontFamily: 'Courier New, monospace' }}>
+                  Adjust in-game font size
+                </p>
+              </div>
+              <span className="text-[10px] text-accent" style={PX}>{SIZE_LABELS[level]}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                data-testid="btn-font-decrease"
+                onClick={decrease}
+                disabled={!canDecrease}
+                className={`flex-1 py-2 border-2 text-[10px] font-bold transition-colors ${
+                  canDecrease
+                    ? 'border-border text-foreground hover:border-primary active:bg-primary/10'
+                    : 'border-border/30 text-muted-foreground/40 cursor-not-allowed'
+                }`}
+                style={PX}
+              >
+                A−
+              </button>
+              {/* Size dots */}
+              <div className="flex gap-1 justify-center flex-1">
+                {[1, 2, 3, 4, 5].map(l => (
+                  <div
+                    key={l}
+                    className={`w-2 h-2 border ${l === level ? 'bg-primary border-primary' : 'bg-transparent border-border'}`}
+                  />
+                ))}
+              </div>
+              <button
+                data-testid="btn-font-increase"
+                onClick={increase}
+                disabled={!canIncrease}
+                className={`flex-1 py-2 border-2 text-[12px] font-bold transition-colors ${
+                  canIncrease
+                    ? 'border-border text-foreground hover:border-primary active:bg-primary/10'
+                    : 'border-border/30 text-muted-foreground/40 cursor-not-allowed'
+                }`}
+                style={PX}
+              >
+                A+
+              </button>
+            </div>
+          </div>
+
+          <div className="border-t border-border" />
 
           {/* Music toggle */}
           <div className="flex items-center justify-between">
@@ -73,6 +129,8 @@ export default function SettingsModal({ onClose }: Props) {
             />
           </div>
 
+          <div className="border-t border-border" />
+
           {/* Theme toggle */}
           <div className="flex items-center justify-between">
             <div>
@@ -93,7 +151,7 @@ export default function SettingsModal({ onClose }: Props) {
           <div className="border-t-2 border-border" />
 
           <p className="text-[9px] text-muted-foreground text-center" style={{ fontFamily: 'Courier New, monospace' }}>
-            v1.0-poc · built with perplexity computer
+            v1.1-poc · built with perplexity computer
           </p>
         </div>
       </div>
