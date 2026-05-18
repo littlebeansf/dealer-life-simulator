@@ -92,9 +92,11 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
                 onClick={() => !blocked && handleDo(activity.id)}
                 disabled={!!blocked}
                 className={`w-full bg-card border text-left transition-all px-3 py-2 ${
-                  isLocal ? 'border-accent/40' : 'border-border'
+                  ageFail
+                    ? 'border-yellow-600/50 opacity-70 cursor-not-allowed'
+                    : isLocal ? 'border-accent/40' : 'border-border'
                 } ${
-                  blocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/50 active:bg-primary/10 cursor-pointer'
+                  blocked ? (ageFail ? '' : 'opacity-50 cursor-not-allowed') : 'hover:border-primary/50 active:bg-primary/10 cursor-pointer'
                 }`}
               >
                 <div className="flex items-start gap-2">
@@ -106,8 +108,13 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
                         {isLocal && <span className="text-[11px] text-accent bg-accent/20 px-1 py-0.5 ui-text">LOCAL</span>}
                         {isOtherLocation && <span className="text-[11px] text-muted-foreground bg-secondary px-1 py-0.5 ui-text">ELSEWHERE</span>}
                         {exhausted && <span className="text-[11px] text-destructive bg-red-900/20 px-1 py-0.5 ui-text">MAX USED</span>}
-                        {!exhausted && diminished && count > 0 && <span className="text-[11px] text-orange-400 bg-orange-900/20 px-1 py-0.5 ui-text">DIM</span>}
-                        {!exhausted && remaining !== null && <span className="text-[11px] text-muted-foreground bg-secondary px-1 py-0.5 ui-text">{remaining}/{maxUses}</span>}
+                        {ageFail && !exhausted && (
+                          <span className="text-[9px] font-bold text-yellow-400 bg-yellow-900/40 border border-yellow-600/50 px-1 py-0.5 flex-shrink-0" style={PX}>
+                            🔒 Age≥{activity.requiresMinAge}
+                          </span>
+                        )}
+                        {!exhausted && !ageFail && diminished && count > 0 && <span className="text-[11px] text-orange-400 bg-orange-900/20 px-1 py-0.5 ui-text">DIM</span>}
+                        {!exhausted && !ageFail && remaining !== null && <span className="text-[11px] text-muted-foreground bg-secondary px-1 py-0.5 ui-text">{remaining}/{maxUses}</span>}
                       </div>
                     </div>
                     <p className="text-[9px] text-muted-foreground ui-text mt-0.5">{activity.description}</p>
@@ -131,11 +138,10 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
                       })}
                     </div>
 
-                    {(statFail || ageFail || exhausted) && (
+                    {(statFail || exhausted) && (
                       <p className="text-[9px] text-destructive ui-text mt-1">
                         {exhausted ? `Yearly limit reached. Advance year to reset.` : ''}
                         {!exhausted && statFail ? `Need ${activity.requiresStat?.stat} ≥ ${activity.requiresStat?.min}` : ''}
-                        {!exhausted && ageFail ? ` Age ≥ ${activity.requiresMinAge}` : ''}
                       </p>
                     )}
                     {isOtherLocation && (

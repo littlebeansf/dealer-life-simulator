@@ -305,26 +305,37 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
                     const finalBlocked = !!blockedReason || !roleCheck.allowed;
                     const finalReason = blockedReason || roleCheck.reason || '';
 
+                    // Distinguish age-gate from role-gate for styling
+                    const isAgeLocked = !roleCheck.allowed && roleCheck.reason?.startsWith('Age');
+                    const isRoleLocked = !roleCheck.allowed && !isAgeLocked;
+
                     return (
                       <button
                         key={action.id}
                         data-testid={`action-${action.id}`}
                         onClick={() => !finalBlocked && handleAction(action.id)}
-                        className={`bg-card border text-left transition-all p-2 ${
-                          finalBlocked
+                        className={`bg-card border text-left transition-all p-2 relative ${
+                          isAgeLocked
+                            ? 'border-yellow-600/50 opacity-70 cursor-not-allowed'
+                            : isRoleLocked || !!blockedReason
                             ? 'border-border opacity-40 cursor-not-allowed'
                             : 'border-border hover:border-primary/50 active:bg-primary/10 cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center gap-1 mb-0.5">
                           <span className="text-sm">{action.emoji}</span>
-                          <span className="text-[8px] font-bold text-foreground truncate" style={PX}>{action.label}</span>
+                          <span className={`text-[8px] font-bold truncate ${ isAgeLocked ? 'text-yellow-400' : 'text-foreground' }`} style={PX}>{action.label}</span>
+                          {isAgeLocked && (
+                            <span className="ml-auto text-[8px] font-bold text-yellow-400 bg-yellow-900/40 border border-yellow-600/50 px-1 py-0.5 flex-shrink-0" style={PX}>
+                              🔒 {roleCheck.reason}
+                            </span>
+                          )}
                         </div>
                         <p className="text-[10px] text-muted-foreground ui-text leading-tight">{action.desc}</p>
                         {action.cost && !finalReason && (
                           <span className="text-[9px] text-accent ui-text mt-0.5 block">{action.cost}</span>
                         )}
-                        {finalReason && (
+                        {!isAgeLocked && finalReason && (
                           <span className="text-[9px] text-destructive ui-text mt-0.5 block">{finalReason}</span>
                         )}
                       </button>

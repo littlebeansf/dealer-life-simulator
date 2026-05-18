@@ -438,13 +438,13 @@ export function doActivity(state: GameState, activity: Activity): GameState {
   const counts = { ...p.activityCounts };
   const currentCount = counts[activity.id] ?? 0;
 
-  // Apply diminishing returns
+  // Apply diminishing returns — only kicks in at 3rd use and beyond (was 2)
   let effects = [...activity.effects];
-  if (currentCount >= 2) {
-    // Reduce stat gains for repeated use
+  if (currentCount >= 3) {
+    // Reduce stat/health/stamina gains for heavily repeated use
     effects = effects.map(e => {
       if ((e.type === 'stat' || e.type === 'health' || e.type === 'stamina') && (e.value ?? 0) > 0) {
-        return { ...e, value: Math.max(0, Math.floor((e.value ?? 0) * 0.3)) };
+        return { ...e, value: Math.max(1, Math.floor((e.value ?? 0) * 0.4)) };
       }
       return e;
     });
@@ -480,23 +480,29 @@ export function doActivity(state: GameState, activity: Activity): GameState {
     };
   }
 
-  // Gamble special
-  if (activity.id === 'gamble' && !s.eventLog[0]?.text?.includes('lost')) {
-    const winAmount = rand(20, 80);
-    s = applyEffect(s, { type: 'money', value: winAmount });
-    s = {
-      ...s,
-      eventLog: [
-        {
-          id: `gamble_${Date.now()}`,
-          age: s.player.age,
-          text: `Lucky streak! You won ${winAmount} gold at the gambling table.`,
-          type: 'event',
-          emoji: '🎲',
-        },
-        ...s.eventLog,
-      ],
-    };
+  // Gamble special: win/lose is driven by riskChance applied above.
+  // If the risk log fired ("lost" in last log entry) we already deducted money.
+  // If no risk fired, this is a win — add winnings.
+  if (activity.id === 'gamble') {
+    const lastEntry = s.eventLog[0];
+    const didLose = lastEntry?.text?.toLowerCase().includes('lost') || lastEntry?.text?.toLowerCase().includes('cruel');
+    if (!didLose) {
+      const winAmount = rand(25, 90);
+      s = applyEffect(s, { type: 'money', value: winAmount });
+      s = {
+        ...s,
+        eventLog: [
+          {
+            id: `gamble_win_${Date.now()}`,
+            age: s.player.age,
+            text: `Lucky streak! You won ${winAmount} gold at the gambling table.`,
+            type: 'event',
+            emoji: '🎲',
+          },
+          ...s.eventLog,
+        ],
+      };
+    }
   }
 
   void saveGame(s);
@@ -581,8 +587,8 @@ export function buyItem(state: GameState, itemId: ItemId, quantity: number): { s
     capacityMax: state.inventory.capacityMax,
   };
 
-  // Heat from high-risk items
-  const heatGain = quantity * item.risk * 0.3;
+  // Heat from high-risk items — reduced slightly so trading isn't too punishing
+  const heatGain = quantity * item.risk * 0.2;
 
   let s: GameState = {
     ...state,
@@ -606,7 +612,7 @@ export function buyItem(state: GameState, itemId: ItemId, quantity: number): { s
   };
 
   // Underworld rep gain for dealing
-  s = applyEffect(s, { type: 'reputation_underworld', value: Math.ceil(quantity * 0.5) });
+  s = applyEffect(s, { type: 'reputation_underworld', value: Math.ceil(quantity * 0.8) });
 
   void saveGame(s);
   return { state: s };
@@ -653,7 +659,9 @@ export function sellItem(state: GameState, itemId: ItemId, quantity: number): { 
     ],
   };
 
-  s = applyEffect(s, { type: 'reputation_underworld', value: Math.ceil(quantity * 0.5) });
+  // Selling gives a small profit rep boost and reduces heat slightly (moved the goods)
+  s = applyEffect(s, { type: 'reputation_underworld', value: Math.ceil(quantity * 0.8) });
+  s = applyEffect(s, { type: 'heat', value: -Math.ceil(quantity * item.risk * 0.05) });
 
   void saveGame(s);
   return { state: s };
@@ -665,16 +673,18 @@ export function ageUp(state: GameState): GameState {
   const newYear = state.currentYear + 1;
 
   // Age effects
-  let healthChange = -2; // aging
-  // Stamina recovers each year (rest, reset) but worsens with age
-  let staminaChange = newAge > 60 ? 8 : 15; // net stamina boost on year advance
+  // Young years (< 20): minimal aging, good recovery
+  // Prime years (20-50): mild aging, decent recovery
+  // Old years (50+): faster decline
+  let healthChange = newAge < 15 ? 0 : newAge < 30 ? -1 : newAge < 50 ? -2 : -4;
+  let staminaChange = newAge > 60 ? 8 : 18; // strong stamina reset each year
 
   if (newAge > 60) {
     healthChange -= 3;
   }
 
-  // Heat cools down
-  const heatCooldown = -rand(5, 10);
+  // Heat cools down more reliably
+  const heatCooldown = -rand(8, 15);
 
   let p = {
     ...state.player,
@@ -994,7 +1004,8 @@ export function doPersonAction(state: GameState, personId: string, action: strin
 
     case 'extort':
       if (p.fear >= 30) {
-        const extracted = rand(15, 40);
+        // Scale extortion with fear level — more fear = more gold extracted
+        const extracted = rand(20, 30) + Math.floor(p.fear * 0.5);
         adjPlayer('money', extracted);
         adjPlayer('heat', rand(5, 10));
         clampPerson('fear', rand(5, 12));
@@ -1035,9 +1046,12 @@ export function doPersonAction(state: GameState, personId: string, action: strin
       break;
 
     case 'fight': {
-      adjPlayer('stamina', -rand(10, 20));
-      adjPlayer('heat', rand(5, 12));
-      const won = chance(0.5 + (s.player.stats.strength - 5) * 0.05);
+      adjPlayer('stamina', -rand(8, 16));
+      adjPlayer('heat', rand(4, 10));
+      // Win chance scales with strength 10–70, then plateaus; also luck adds a small factor
+      const strBonus = Math.min(0.25, (s.player.stats.strength - 30) * 0.005);
+      const luckBonus = s.player.stats.luck * 0.002;
+      const won = chance(0.45 + strBonus + luckBonus);
       if (won) {
         adjPlayer('health', -rand(3, 8));
         clampPerson('health' as any, -rand(15, 30));
@@ -1062,8 +1076,10 @@ export function doPersonAction(state: GameState, personId: string, action: strin
     }
 
     case 'betray': {
-      const betrayGold = rand(50, 120);
-      adjPlayer('money', betrayGold);
+      // Betrayal payout scales with how much the person trusted/respected you
+      const betrayBase = rand(40, 90);
+      const betrayGold = betrayBase + Math.floor(p.trust * 0.4) + Math.floor(p.respect * 0.3);
+      adjPlayer('money', Math.floor(betrayGold));
       adjPlayer('heat', rand(10, 20));
       adjPubRep(-rand(8, 15));
       adjUWRep(-rand(5, 10));
@@ -1421,7 +1437,7 @@ export function createNewGame(
     raceId: playerRaceId,
     fatherId: father.id,
     motherId: mother.id,
-    money: rand(20, 50),
+    money: rand(40, 80), // slightly more starting gold so early years aren't brick-walled
     stats,
     health,
     stamina,
