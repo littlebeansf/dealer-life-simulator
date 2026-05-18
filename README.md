@@ -158,10 +158,4 @@ Server runs on **port 5000**. Save data persists in SQLite.
 
 ---
 
-## 📋 Notion
-
-Full project notes, session history, and design decisions tracked in [Mental Castle → Projects → Dealer Life Simulator](https://www.notion.so/36241c37c6de81eeb5d6e8f54bd51614).
-
----
-
 *Built with [Perplexity AI Computer](https://www.perplexity.ai/computer) · May 2026*
