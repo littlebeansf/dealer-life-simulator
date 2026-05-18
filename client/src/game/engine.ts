@@ -25,9 +25,50 @@ import { ITEMS, ALL_ITEM_IDS } from './data/items';
 import { LOCATIONS, LOCATION_LIST } from './data/locations';
 import { TRAVEL_EVENTS, AGE_UP_EVENTS } from './data/events';
 
-// ===== SAVE/LOAD (API-backed via proxy — works in sandboxed iframe + deployed) =====
-// We use the API_BASE prefix so that after deployment the __PORT_5000__ token
-// gets rewritten to the backend proxy path.
+// ===== SAVE/LOAD =====
+// Primary storage: window.name (survives page refresh in same tab;
+// works in sandboxed iframes where localStorage/sessionStorage/indexedDB are blocked).
+// Secondary storage: backend API (used when available for cross-tab persistence).
+//
+// window.name format: JSON object keyed by "slot_0" / "slot_1" / "slot_2".
+// Each value is { data: GameState } | null.
+
+const WINDOW_NAME_KEY = 'dls_saves';
+
+function readWindowStore(): Record<string, GameState | null> {
+  try {
+    const raw = window.name || '{}';
+    const parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object' && parsed[WINDOW_NAME_KEY])
+      ? parsed[WINDOW_NAME_KEY]
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeWindowStore(store: Record<string, GameState | null>): void {
+  try {
+    // Preserve any other data in window.name (e.g. from the page host)
+    let existing: Record<string, unknown> = {};
+    try { existing = JSON.parse(window.name || '{}'); } catch { /* ignore */ }
+    existing[WINDOW_NAME_KEY] = store;
+    window.name = JSON.stringify(existing);
+  } catch { /* ignore */ }
+}
+
+function migrateState(data: GameState): GameState {
+  // Ensure gangs exists (for saves created before gang system)
+  if (!data.gangs) {
+    const gangsList: Gang[] = [];
+    for (let i = 0; i < 6; i++) gangsList.push(generateGang(i));
+    data.gangs = {};
+    for (const g of gangsList) data.gangs[g.id] = g;
+  }
+  return data;
+}
+
+// API (secondary — used in addition to window.name when server is available)
 const API_BASE = (window as any).__API_BASE__ ?? (() => {
   const sentinel = '__PORT_5000__';
   return sentinel.startsWith('__') ? '' : sentinel;
@@ -37,47 +78,62 @@ async function apiFetch(path: string, options?: RequestInit): Promise<Response> 
   return fetch(`${API_BASE}${path}`, options);
 }
 
-export async function saveGame(state: GameState, slot: number = 0): Promise<void> {
+async function apiSave(state: GameState, slot: number): Promise<void> {
   try {
     await apiFetch(`/api/save/${slot}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: state }),
     });
-  } catch (e) {
-    console.error('Save failed', e);
-  }
+  } catch { /* ignore — API is optional */ }
 }
 
-export async function loadGame(slot: number = 0): Promise<GameState | null> {
+async function apiLoad(slot: number): Promise<GameState | null> {
   try {
     const res = await apiFetch(`/api/save/${slot}`);
     if (!res.ok) return null;
     const json = await res.json();
-    if (!json.exists) return null;
-    const data = json.data as GameState;
-    // Migration: ensure gangs exists (for saves created before gang system)
-    if (!data.gangs) {
-      const gangsList: Gang[] = [];
-      for (let i = 0; i < 6; i++) gangsList.push(generateGang(i));
-      data.gangs = {};
-      for (const g of gangsList) data.gangs[g.id] = g;
-    }
-    return data;
+    return json.exists ? migrateState(json.data as GameState) : null;
   } catch {
     return null;
   }
 }
 
-export async function deleteSave(slot: number = 0): Promise<void> {
+async function apiDelete(slot: number): Promise<void> {
   try {
     await apiFetch(`/api/save/${slot}`, { method: 'DELETE' });
-  } catch (e) {
-    console.error('Delete save failed', e);
-  }
+  } catch { /* ignore */ }
+}
+
+export async function saveGame(state: GameState, slot: number = 0): Promise<void> {
+  // 1. Write to window.name immediately (sync, never fails)
+  const store = readWindowStore();
+  store[`slot_${slot}`] = state;
+  writeWindowStore(store);
+  // 2. Also persist to API in the background (best-effort)
+  void apiSave(state, slot);
+}
+
+export async function loadGame(slot: number = 0): Promise<GameState | null> {
+  // 1. Try window.name first (always available, survives refresh)
+  const store = readWindowStore();
+  const local = store[`slot_${slot}`];
+  if (local) return migrateState(local);
+  // 2. Fall back to API (available when server is running)
+  return apiLoad(slot);
+}
+
+export async function deleteSave(slot: number = 0): Promise<void> {
+  // Delete from both stores
+  const store = readWindowStore();
+  delete store[`slot_${slot}`];
+  writeWindowStore(store);
+  void apiDelete(slot);
 }
 
 export async function hasSave(slot: number = 0): Promise<boolean> {
+  const store = readWindowStore();
+  if (store[`slot_${slot}`]) return true;
   try {
     const res = await apiFetch(`/api/save/${slot}`);
     if (!res.ok) return false;
@@ -89,18 +145,32 @@ export async function hasSave(slot: number = 0): Promise<boolean> {
 }
 
 export async function listSaves(): Promise<Array<{ slot: number; exists: boolean; data: GameState | null }>> {
+  const store = readWindowStore();
   const slots = [0, 1, 2];
-  const results = await Promise.all(slots.map(async (slot) => {
+
+  // Merge window.name data with API data (window.name wins for freshness)
+  const apiResults = await Promise.all(slots.map(async (slot) => {
     try {
       const res = await apiFetch(`/api/save/${slot}`);
-      if (!res.ok) return { slot, exists: false, data: null };
+      if (!res.ok) return { slot, exists: false, data: null as GameState | null };
       const json = await res.json();
       return { slot, exists: json.exists, data: json.exists ? (json.data as GameState) : null };
     } catch {
-      return { slot, exists: false, data: null };
+      return { slot, exists: false, data: null as GameState | null };
     }
   }));
-  return results;
+
+  return slots.map((slot, i) => {
+    const local = store[`slot_${slot}`] ?? null;
+    const api = apiResults[i];
+    // Prefer local window.name data; if API has a save we don't have locally, bring it in
+    if (local) {
+      // Sync to API if it doesn't know about this save
+      if (!api.exists) void apiSave(local, slot);
+      return { slot, exists: true, data: migrateState(local) };
+    }
+    return api;
+  });
 }
 
 // ===== RANDOM =====
