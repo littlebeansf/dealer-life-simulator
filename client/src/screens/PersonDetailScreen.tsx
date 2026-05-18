@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import type { GameState } from '../game/types';
 import { RACES } from '../game/data/races';
 import { LOCATIONS } from '../game/data/locations';
@@ -157,6 +158,12 @@ const CATEGORIES: Array<PersonAction['category']> = ['social', 'romance', 'busin
 export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, onNavigate }: Props) {
   const { showBanner } = useBanner();
   const { playSfx } = useAudio();
+  const [shakingId, setShakingId] = useState<string | null>(null);
+
+  const triggerShake = useCallback((id: string) => {
+    setShakingId(id);
+    setTimeout(() => setShakingId(null), 400);
+  }, []);
 
   if (!personId || !gs.people[personId]) {
     return (
@@ -187,32 +194,43 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
     if (!action) return;
 
     // Pre-flight checks (client-side guards — engine has them too but UX needs feedback)
+    const failShake = (msg: string, type: 'warning' | 'error' = 'warning') => {
+      triggerShake(actionId); playSfx('error'); showBanner(msg, type);
+    };
     if (actionId === 'make_love' && person.relationship < 60) {
-      showBanner(`${person.name} isn't close enough for that. (Rel < 60)`, 'warning'); return;
+      failShake(`${person.name} isn't close enough for that. (Rel < 60)`); return;
     }
     if (actionId === 'ask_rumor' && person.trust < 40) {
-      showBanner(`${person.name} doesn't trust you enough. (Trust < 40)`, 'warning'); return;
+      failShake(`${person.name} doesn't trust you enough. (Trust < 40)`); return;
     }
     if (actionId === 'propose_partnership' && person.trust < 60) {
-      showBanner(`${person.name} doesn't trust you enough. (Trust < 60)`, 'warning'); return;
+      failShake(`${person.name} doesn't trust you enough. (Trust < 60)`); return;
     }
     if (actionId === 'collect_debt' && person.debtToPlayer <= 0) {
-      showBanner(`${person.name} doesn't owe you anything.`, 'warning'); return;
+      failShake(`${person.name} doesn't owe you anything.`); return;
     }
     if (actionId === 'extort' && person.fear < 30) {
-      showBanner(`${person.name} isn't afraid of you yet. (Fear < 30)`, 'warning'); return;
+      failShake(`${person.name} isn't afraid of you yet. (Fear < 30)`); return;
     }
     if (actionId === 'give_gift' && gs.player.money < 25) {
-      showBanner(`Not enough gold to give a gift. (25g needed)`, 'error'); return;
+      failShake(`Not enough gold to give a gift. (25g needed)`, 'error'); return;
     }
     if (actionId === 'go_drink' && gs.player.money < 15) {
-      showBanner(`Not enough gold to buy drinks. (15g needed)`, 'error'); return;
+      failShake(`Not enough gold to buy drinks. (15g needed)`, 'error'); return;
     }
     if (actionId === 'bribe' && gs.player.money < 30) {
-      showBanner(`Not enough gold to bribe. (30g needed)`, 'error'); return;
+      failShake(`Not enough gold to bribe. (30g needed)`, 'error'); return;
     }
     if (actionId === 'loan_gold' && gs.player.money < 50) {
-      showBanner(`Not enough gold to loan. (50g needed)`, 'error'); return;
+      failShake(`Not enough gold to loan. (50g needed)`, 'error'); return;
+    }
+
+    // Catch any remaining role/age blocks not handled above
+    const person2 = gs.people[personId];
+    const action2 = action;
+    const roleCheck2 = isActionAllowed(actionId, action2.category, person2.role as PersonRole, gs.player.age);
+    if (!roleCheck2.allowed) {
+      failShake(roleCheck2.reason ?? 'Cannot do that.', 'warning'); return;
     }
 
     playSfx('click');
@@ -313,13 +331,15 @@ export default function PersonDetailScreen({ gameState: gs, personId, onUpdate, 
                       <button
                         key={action.id}
                         data-testid={`action-${action.id}`}
-                        onClick={() => !finalBlocked && handleAction(action.id)}
+                        onClick={() => handleAction(action.id)}
                         className={`bg-card border text-left transition-all p-2 relative ${
                           isAgeLocked
                             ? 'border-yellow-600/50 opacity-70 cursor-not-allowed'
                             : isRoleLocked || !!blockedReason
                             ? 'border-border opacity-40 cursor-not-allowed'
                             : 'border-border hover:border-primary/50 active:bg-primary/10 cursor-pointer'
+                        } ${
+                          shakingId === action.id ? 'action-blocked-shake' : ''
                         }`}
                       >
                         <div className="flex items-center gap-1 mb-0.5">

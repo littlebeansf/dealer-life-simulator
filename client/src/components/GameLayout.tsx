@@ -27,18 +27,32 @@ export default function GameLayout({ gameState: gs, children, panelExtra }: Prop
 
       {/* ── TOP PANEL: Location bg + player stats ──────────────────────── */}
       <div
-        className="relative flex-shrink-0 overflow-hidden"
-        style={{ height: '42vh', minHeight: '210px', maxHeight: '300px' }}
+        className="relative flex-shrink-0 overflow-hidden bg-black"
+        style={{ height: '42vh', minHeight: '210px', maxHeight: '320px' }}
       >
+        {/* Background image — on mobile fills naturally; on desktop anchored to top
+            so the image never gets cropped/washed out on wide viewports */}
         {locImg && (
           <img
             src={locImg}
             alt={location.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute left-0 right-0 top-0 w-full"
+            style={{
+              // object-cover would stretch on desktop. Instead, natural width
+              // with top-aligned crop lets the image look crisp like on mobile.
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              maxWidth: '480px',
+              margin: '0 auto',
+            }}
             loading="eager"
             decoding="async"
           />
         )}
+        {/* On desktop: black flanks outside the image */}
+        <div className="absolute inset-0 bg-black/0 pointer-events-none"
+          style={{ background: 'linear-gradient(to right, #000 0%, transparent 12%, transparent 88%, #000 100%)' }} />
         {/* Dark overlays top and bottom for text legibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/15 to-black/85" />
 
@@ -50,25 +64,29 @@ export default function GameLayout({ gameState: gs, children, panelExtra }: Prop
                 <img
                   src={raceImg}
                   alt={race.name}
-                  className="w-10 h-10 object-contain flex-shrink-0"
-                  style={{ imageRendering: 'pixelated' }}
+                  className="object-contain flex-shrink-0"
+                  style={{
+                    imageRendering: 'pixelated',
+                    width: 'calc(2.5rem * var(--fs-emoji))',
+                    height: 'calc(2.5rem * var(--fs-emoji))',
+                  }}
                   loading="eager"
                 />
               )}
               <div>
-                <p className="text-[11px] font-bold text-white leading-none drop-shadow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+                <p className="font-bold text-white leading-none drop-shadow pixel-text">
                   {player.name}
                 </p>
-                <p className="text-[10px] text-white/75 leading-tight mt-1" style={{ fontFamily: 'Courier New, monospace' }}>
+                <p className="text-white/75 leading-tight mt-1 ui-text">
                   {race.name} · Age {player.age}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[13px] font-bold text-accent drop-shadow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+              <p className="font-bold text-accent drop-shadow pixel-text" style={{ fontSize: 'calc(13px * var(--fs-scale-px))' }}>
                 {player.money}g
               </p>
-              <p className="text-[10px] text-white/60" style={{ fontFamily: 'Courier New, monospace' }}>Year {gs.currentYear}</p>
+              <p className="text-white/60 ui-text">Year {gs.currentYear}</p>
             </div>
           </div>
 
@@ -83,10 +101,10 @@ export default function GameLayout({ gameState: gs, children, panelExtra }: Prop
 
         {/* ── Location name ── */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-3">
-          <p className="text-[12px] font-bold text-white drop-shadow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+          <p className="font-bold text-white drop-shadow pixel-text">
             {location.name.toUpperCase()}
           </p>
-          <p className="text-[10px] text-white/65 mt-0.5" style={{ fontFamily: 'Courier New, monospace' }}>
+          <p className="text-white/65 mt-0.5 ui-text">
             {location.culture}
           </p>
           {panelExtra}

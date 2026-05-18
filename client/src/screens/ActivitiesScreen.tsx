@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import type { GameState } from '../game/types';
 import { ACTIVITIES } from '../game/data/activities';
 import { doActivity } from '../game/engine';
@@ -17,6 +18,12 @@ const PX = { fontFamily: 'Press Start 2P, monospace' };
 export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }: Props) {
   const { showBanner } = useBanner();
   const { playSfx } = useAudio();
+  const [shakingId, setShakingId] = useState<string | null>(null);
+
+  const triggerShake = useCallback((id: string) => {
+    setShakingId(id);
+    setTimeout(() => setShakingId(null), 400);
+  }, []);
 
   const locationActivities = ACTIVITIES.filter(a => a.locationId === gs.currentLocationId);
   const alwaysActivities = ACTIVITIES.filter(a => !a.locationId);
@@ -28,17 +35,20 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
     if (activity.requiresStat) {
       const { stat, min } = activity.requiresStat;
       if ((gs.player.stats[stat] ?? 0) < min) {
+        triggerShake(activityId); playSfx('error');
         showBanner(`Need ${stat} ≥ ${min} to do this.`, 'error');
         return;
       }
     }
     if (activity.requiresMinAge && gs.player.age < activity.requiresMinAge) {
+      triggerShake(activityId); playSfx('error');
       showBanner(`Must be at least age ${activity.requiresMinAge}.`, 'error');
       return;
     }
     // Enforce cooldownPerYear limit
     const count = gs.player.activityCounts[activityId] ?? 0;
     if (activity.cooldownPerYear > 0 && count >= activity.cooldownPerYear) {
+      triggerShake(activityId); playSfx('error');
       showBanner(`${activity.name} — max uses this year reached!`, 'warning');
       return;
     }
@@ -89,14 +99,15 @@ export default function ActivitiesScreen({ gameState: gs, onUpdate, onNavigate }
               )}
               <button
                 data-testid={`activity-${activity.id}`}
-                onClick={() => !blocked && handleDo(activity.id)}
-                disabled={!!blocked}
+                onClick={() => handleDo(activity.id)}
                 className={`w-full bg-card border text-left transition-all px-3 py-2 ${
                   ageFail
                     ? 'border-yellow-600/50 opacity-70 cursor-not-allowed'
                     : isLocal ? 'border-accent/40' : 'border-border'
                 } ${
                   blocked ? (ageFail ? '' : 'opacity-50 cursor-not-allowed') : 'hover:border-primary/50 active:bg-primary/10 cursor-pointer'
+                } ${
+                  shakingId === activity.id ? 'action-blocked-shake' : ''
                 }`}
               >
                 <div className="flex items-start gap-2">

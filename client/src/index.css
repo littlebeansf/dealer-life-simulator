@@ -139,6 +139,31 @@
   font-size: calc(10px * var(--fs-scale-px));
 }
 
+/* Emoji / icon scale — grows with font level */
+.scaled-emoji {
+  font-size: calc(1.1rem * var(--fs-emoji));
+  line-height: 1;
+  display: inline-block;
+}
+
+/* Shake + red flash for blocked actions */
+@keyframes blocked-shake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-5px); }
+  40%  { transform: translateX(5px); }
+  60%  { transform: translateX(-3px); }
+  80%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+@keyframes blocked-flash {
+  0%   { box-shadow: none; }
+  30%  { box-shadow: inset 0 0 0 1px hsl(0 70% 50%), 0 0 0 1px hsl(0 70% 50% / 0.4); }
+  100% { box-shadow: none; }
+}
+.action-blocked-shake {
+  animation: blocked-shake 0.3s ease, blocked-flash 0.5s ease;
+}
+
 /* Readable button / label sizes */
 .px-label {
   font-family: 'Press Start 2P', monospace;

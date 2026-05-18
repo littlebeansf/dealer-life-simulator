@@ -26,12 +26,12 @@ const FontSizeContext = createContext<FontSizeContextValue>({
  *   --fs-ui  : Courier New / ui-text (descriptions, body)
  *   --btn-h  : min-height for buttons
  */
-const LEVEL_VARS: Record<FontSizeLevel, { px: string; ui: string; btnH: string }> = {
-  1: { px: '0.85',  ui: '0.8',   btnH: '28px'  },
-  2: { px: '0.92',  ui: '0.9',   btnH: '32px'  },
-  3: { px: '1',     ui: '1',     btnH: '36px'  }, // default
-  4: { px: '1.15',  ui: '1.15',  btnH: '42px'  },
-  5: { px: '1.35',  ui: '1.3',   btnH: '50px'  },
+const LEVEL_VARS: Record<FontSizeLevel, { px: string; ui: string; btnH: string; emoji: string }> = {
+  1: { px: '0.85',  ui: '0.8',   btnH: '28px',  emoji: '0.8'  },
+  2: { px: '0.92',  ui: '0.9',   btnH: '32px',  emoji: '0.9'  },
+  3: { px: '1',     ui: '1',     btnH: '36px',  emoji: '1'    }, // default
+  4: { px: '1.15',  ui: '1.15',  btnH: '42px',  emoji: '1.2'  },
+  5: { px: '1.35',  ui: '1.3',   btnH: '50px',  emoji: '1.4'  },
 };
 
 export function FontSizeProvider({ children }: { children: ReactNode }) {
@@ -43,6 +43,7 @@ export function FontSizeProvider({ children }: { children: ReactNode }) {
     root.style.setProperty('--fs-scale-px', vars.px);
     root.style.setProperty('--fs-scale-ui', vars.ui);
     root.style.setProperty('--btn-min-h', vars.btnH);
+    root.style.setProperty('--fs-emoji', vars.emoji);
   }, []);
 
   useEffect(() => { applyLevel(level); }, [level, applyLevel]);
