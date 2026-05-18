@@ -34,7 +34,22 @@ export default function App() {
 
   useEffect(() => {
     async function init() {
-      await refreshSaves();
+      const s = await refreshSaves();
+      // Auto-resume: if there is exactly one populated save slot, load it immediately
+      // so the player doesn't have to manually click LOAD after a refresh.
+      // With multiple saves, show the menu so the player can choose.
+      const populated = s.filter(sv => sv.exists && sv.data);
+      if (populated.length === 1) {
+        const sv = populated[0];
+        const saved = await loadGame(sv.slot);
+        if (saved) {
+          setActiveSlot(sv.slot);
+          setGameState(saved);
+          setScreen('game');
+          setLoading(false);
+          return;
+        }
+      }
       setLoading(false);
     }
     init();
