@@ -6,9 +6,10 @@ const PX = { fontFamily: 'Press Start 2P, monospace' };
 
 interface Props {
   onClose: () => void;
+  onMainMenu?: () => void;
 }
 
-export default function SettingsModal({ onClose }: Props) {
+export default function SettingsModal({ onClose, onMainMenu }: Props) {
   const { musicEnabled, volume, toggleMusic, setVolume } = useAudio();
   const { theme, toggle: toggleTheme } = useTheme();
   const { level, increase, decrease, canIncrease, canDecrease } = useFontSize();
@@ -149,6 +150,18 @@ export default function SettingsModal({ onClose }: Props) {
           </div>
 
           <div className="border-t-2 border-border" />
+
+          {/* Exit to Main Menu */}
+          {onMainMenu && (
+            <button
+              data-testid="btn-main-menu"
+              onClick={() => { onClose(); onMainMenu(); }}
+              className="w-full py-3 border border-destructive/30 bg-destructive/10 text-destructive text-[9px] hover:bg-destructive/20 transition-colors"
+              style={PX}
+            >
+              ⬅ MAIN MENU
+            </button>
+          )}
 
           <p className="text-[9px] text-muted-foreground text-center" style={{ fontFamily: 'Courier New, monospace' }}>
             v1.1-poc · built with perplexity computer

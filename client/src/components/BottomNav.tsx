@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import type { GameState } from '../game/types';
 import { useTheme } from '../hooks/useTheme';
+import { useMainMenu } from '../hooks/useMainMenu';
 import SettingsModal from './SettingsModal';
 
 interface Props {
   current: GameState['screen'];
   onNavigate: (s: GameState['screen']) => void;
+  onMainMenu?: () => void;
 }
 
 const NAV_ITEMS: { id: GameState['screen']; label: string; emoji: string }[] = [
@@ -19,7 +21,9 @@ const NAV_ITEMS: { id: GameState['screen']; label: string; emoji: string }[] = [
   { id: 'gangs', label: 'Gangs', emoji: '⚔️' },
 ];
 
-export default function BottomNav({ current, onNavigate }: Props) {
+export default function BottomNav({ current, onNavigate, onMainMenu: onMainMenuProp }: Props) {
+  const ctxMainMenu = useMainMenu();
+  const onMainMenu = onMainMenuProp ?? ctxMainMenu;
   const { theme, toggle } = useTheme();
   const [showSettings, setShowSettings] = useState(false);
 
@@ -71,7 +75,7 @@ export default function BottomNav({ current, onNavigate }: Props) {
           </button>
         </div>
       </nav>
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} onMainMenu={onMainMenu} />}
     </>
   );
 }

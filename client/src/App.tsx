@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { loadGame, hasSave, deleteSave, saveGame } from './game/engine';
+import { loadGame, deleteSave, saveGame, listSaves } from './game/engine';
+import { MainMenuProvider } from './hooks/useMainMenu';
 import type { GameState } from './game/types';
 import MainMenuScreen from './screens/MainMenuScreen';
 import NewGameScreen from './screens/NewGameScreen';
@@ -15,24 +16,25 @@ import GangsScreen from './screens/GangsScreen';
 import DeathScreen from './screens/DeathScreen';
 import EventModal from './components/EventModal';
 
+type SaveSlot = { slot: number; exists: boolean; data: GameState | null };
+
 export default function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const [activeSlot, setActiveSlot] = useState<number>(0);
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
   const [screen, setScreen] = useState<'main_menu' | 'new_game' | 'game'>('main_menu');
-  const [saveExists, setSaveExists] = useState(false);
+  const [saves, setSaves] = useState<SaveSlot[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const refreshSaves = async () => {
+    const s = await listSaves();
+    setSaves(s);
+    return s;
+  };
 
   useEffect(() => {
     async function init() {
-      const exists = await hasSave();
-      setSaveExists(exists);
-      if (exists) {
-        const saved = await loadGame();
-        if (saved) {
-          setGameState(saved);
-          setScreen('game');
-        }
-      }
+      await refreshSaves();
       setLoading(false);
     }
     init();
@@ -51,19 +53,22 @@ export default function App() {
   if (screen === 'main_menu') {
     return (
       <MainMenuScreen
-        hasSave={saveExists}
-        onNewGame={() => setScreen('new_game')}
-        onContinue={async () => {
-          const saved = await loadGame();
+        saves={saves}
+        onNewGame={(slot: number) => {
+          setActiveSlot(slot);
+          setScreen('new_game');
+        }}
+        onLoad={async (slot: number) => {
+          const saved = await loadGame(slot);
           if (saved) {
+            setActiveSlot(slot);
             setGameState(saved);
             setScreen('game');
           }
         }}
-        onDeleteSave={async () => {
-          await deleteSave();
-          setGameState(null);
-          setSaveExists(false);
+        onDeleteSave={async (slot: number) => {
+          await deleteSave(slot);
+          await refreshSaves();
         }}
       />
     );
@@ -72,9 +77,11 @@ export default function App() {
   if (screen === 'new_game') {
     return (
       <NewGameScreen
-        onStart={(state) => {
+        onStart={async (state) => {
+          // Save to the chosen slot immediately
+          await saveGame(state, activeSlot);
           setGameState(state);
-          setSaveExists(true);
+          await refreshSaves();
           setScreen('game');
         }}
         onBack={() => setScreen('main_menu')}
@@ -89,7 +96,7 @@ export default function App() {
 
   const updateState = (newState: GameState) => {
     setGameState(newState);
-    void saveGame(newState);
+    void saveGame(newState, activeSlot);
   };
 
   // Event modal overlay
@@ -106,14 +113,14 @@ export default function App() {
     return (
       <>
         <DeathScreen gameState={gs} onNewGame={async () => {
-          await deleteSave();
+          await deleteSave(activeSlot);
           setGameState(null);
-          setSaveExists(false);
+          await refreshSaves();
           setScreen('new_game');
         }} onMainMenu={async () => {
-          await deleteSave();
+          await deleteSave(activeSlot);
           setGameState(null);
-          setSaveExists(false);
+          await refreshSaves();
           setScreen('main_menu');
         }} />
         {eventOverlay}
@@ -166,10 +173,16 @@ export default function App() {
     }
   };
 
+  const goToMainMenu = async () => {
+    setGameState(null);
+    await refreshSaves();
+    setScreen('main_menu');
+  };
+
   return (
-    <>
+    <MainMenuProvider onMainMenu={goToMainMenu}>
       {renderScreen()}
       {eventOverlay}
-    </>
+    </MainMenuProvider>
   );
 }

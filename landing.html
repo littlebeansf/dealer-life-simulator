@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dealer Life Simulator — Gritty Fantasy Idle RPG</title>
+  <meta name="description" content="A gritty dark fantasy life simulator. Buy low, sell high, don't get caught. 10 playable races, 6 rival gangs, 50+ NPCs. Free to play." />
+  <meta property="og:title" content="Dealer Life Simulator" />
+  <meta property="og:description" content="A gritty life simulator. Buy low, sell high, don't get caught." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─────────────────────────────────────────────
+       CSS VARIABLES & RESET
+    ───────────────────────────────────────────── */
+    :root {
+      --bg:       #0a080a;
+      --panel:    #120f12;
+      --border:   #2a1e2a;
+      --accent:   #c87f3a;
+      --accent2:  #e8a050;
+      --text:     #f0d8b0;
+      --muted:    #7a5a3a;
+      --glow:     rgba(200, 127, 58, 0.15);
+      --glow-str: rgba(200, 127, 58, 0.35);
+      --font:     'Press Start 2P', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-int: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 10px;
+      line-height: 1.8;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ─── SCANLINES OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.18) 2px,
+        rgba(0, 0, 0, 0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ─────────────────────────────────────────────
+       TYPOGRAPHY UTILITIES
+    ───────────────────────────────────────────── */
+    .pixel { font-family: var(--font); }
+
+    h1, h2, h3 {
+      font-family: var(--font);
+      line-height: 1.6;
+    }
+
+    /* ─────────────────────────────────────────────
+       SCROLLBAR
+    ───────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ─────────────────────────────────────────────
+       CANVAS BG
+    ───────────────────────────────────────────── */
+    #particle-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─────────────────────────────────────────────
+       NAV
+    ───────────────────────────────────────────── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 8, 10, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
+    }
+
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      gap: 1rem;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--accent);
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .nav-logo svg {
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: clamp(0.6rem, 2vw, 1.4rem);
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 7px;
+      letter-spacing: 0.08em;
+      transition: color var(--ease-int);
+    }
+
+    .nav-links a:hover { color: var(--accent2); }
+
+    .nav-cta {
+      background: var(--accent);
+      color: #1a0e06 !important;
+      padding: 6px 12px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 7px;
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition:
+        background var(--ease-int),
+        box-shadow var(--ease-int),
+        transform var(--ease-int);
+      display: inline-block;
+      clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+    }
+
+    .nav-cta:hover {
+      background: var(--accent2);
+      box-shadow: 0 0 14px var(--glow-str);
+      transform: translateY(-1px);
+    }
+
+    .nav-cta:active { transform: translateY(0); }
+
+    /* Mobile nav */
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: var(--font);
+      font-size: 9px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 680px) {
+      .nav-toggle { display: block; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 56px;
+        left: 0; right: 0;
+        background: rgba(10, 8, 10, 0.97);
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+      .nav-links.open { display: flex; }
+    }
+
+    /* ─────────────────────────────────────────────
+       HERO
+    ───────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: clamp(4rem, 10vw, 8rem) clamp(1rem, 4vw, 3rem);
+      overflow: hidden;
+      background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(200,127,58,0.08) 0%, transparent 70%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+    }
+
+    .hero-eyebrow {
+      font-size: 7px;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .hero-eyebrow::before,
+    .hero-eyebrow::after {
+      content: '';
+      display: block;
+      width: 30px;
+      height: 1px;
+      background: var(--muted);
+      opacity: 0.5;
+    }
+
+    .hero-title {
+      font-size: clamp(18px, 4.5vw, 38px);
+      color: var(--accent);
+      text-shadow:
+        0 0 20px var(--glow-str),
+        0 0 60px rgba(200,127,58,0.2),
+        0 0 120px rgba(200,127,58,0.1);
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+      animation: heroGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes heroGlow {
+      0%, 100% {
+        text-shadow:
+          0 0 20px var(--glow-str),
+          0 0 60px rgba(200,127,58,0.2),
+          0 0 120px rgba(200,127,58,0.1);
+      }
+      50% {
+        text-shadow:
+          0 0 30px rgba(232,160,80,0.8),
+          0 0 80px rgba(200,127,58,0.4),
+          0 0 160px rgba(200,127,58,0.15);
+      }
+    }
+
+    .hero-title-line2 {
+      font-size: clamp(18px, 4.5vw, 38px);
+      color: var(--text);
+      text-shadow:
+        0 0 10px rgba(240,216,176,0.2);
+      line-height: 1.5;
+      margin-bottom: 2rem;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(7px, 1.5vw, 10px);
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 2.5rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #1a0e06;
+      font-family: var(--font);
+      font-size: 9px;
+      padding: 14px 24px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      display: inline-block;
+      position: relative;
+      transition:
+        background var(--ease-int),
+        box-shadow var(--ease-int),
+        transform var(--ease-int);
+      clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2);
+      box-shadow: 0 0 24px var(--glow-str), 0 0 60px var(--glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      font-family: var(--font);
+      font-size: 9px;
+      padding: 13px 24px;
+      border: 1px solid var(--accent);
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      display: inline-block;
+      transition:
+        background var(--ease-int),
+        color var(--ease-int),
+        box-shadow var(--ease-int),
+        transform var(--ease-int);
+      clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+
+    .btn-secondary:hover {
+      background: var(--glow);
+      box-shadow: 0 0 16px var(--glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary:active { transform: translateY(0); }
+
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(1rem, 4vw, 2.5rem);
+      flex-wrap: wrap;
+    }
+
+    .stat-badge {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      font-size: 7px;
+      color: var(--accent2);
+      letter-spacing: 0.1em;
+      position: relative;
+    }
+
+    .stat-badge::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 6px; height: 6px;
+      border-top: 1px solid var(--accent);
+      border-left: 1px solid var(--accent);
+    }
+
+    .stat-badge::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 6px; height: 6px;
+      border-bottom: 1px solid var(--accent);
+      border-right: 1px solid var(--accent);
+    }
+
+    /* ─────────────────────────────────────────────
+       TICKER
+    ───────────────────────────────────────────── */
+    .ticker {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ticker-inner {
+      display: flex;
+      white-space: nowrap;
+      animation: marquee 28s linear infinite;
+    }
+
+    .ticker-text {
+      font-size: 7px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      padding-right: 4rem;
+      flex-shrink: 0;
+    }
+
+    @keyframes marquee {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .ticker:hover .ticker-inner {
+      animation-play-state: paused;
+    }
+
+    /* ─────────────────────────────────────────────
+       SECTIONS SHARED
+    ───────────────────────────────────────────── */
+    section {
+      padding: clamp(3rem, 8vw, 6rem) clamp(1rem, 4vw, 2.5rem);
+    }
+
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: clamp(10px, 2vw, 14px);
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.12em;
+    }
+
+    .section-divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      margin: 0 auto 3rem;
+    }
+
+    /* ─────────────────────────────────────────────
+       FEATURES GRID
+    ───────────────────────────────────────────── */
+    .features {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .feature-card {
+      background: var(--bg);
+      padding: 2rem 1.5rem;
+      position: relative;
+      transition:
+        background var(--ease-int);
+    }
+
+    .feature-card:hover {
+      background: #140e14;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity var(--ease-int);
+    }
+
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      font-size: 22px;
+      margin-bottom: 1rem;
+      display: block;
+      filter: drop-shadow(0 0 6px var(--glow-str));
+    }
+
+    .feature-title {
+      font-size: 8px;
+      color: var(--accent2);
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.06em;
+    }
+
+    .feature-desc {
+      font-size: 7px;
+      color: var(--muted);
+      line-height: 2;
+    }
+
+    /* ─────────────────────────────────────────────
+       HOW TO PLAY
+    ───────────────────────────────────────────── */
+    .htp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+    }
+
+    .htp-step {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      position: relative;
+      transition:
+        border-color var(--ease-int),
+        box-shadow var(--ease-int),
+        transform var(--ease-int);
+    }
+
+    .htp-step:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px var(--glow), inset 0 0 20px var(--glow);
+      transform: translateY(-3px);
+    }
+
+    .htp-number {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #1a0e06;
+      font-family: var(--font);
+      font-size: 8px;
+      padding: 4px 10px;
+    }
+
+    .htp-icon {
+      font-size: 28px;
+      display: block;
+      margin: 0.5rem auto 1.2rem;
+      filter: drop-shadow(0 0 8px var(--glow-str));
+    }
+
+    .htp-title {
+      font-size: 8px;
+      color: var(--accent2);
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.06em;
+    }
+
+    .htp-desc {
+      font-size: 7px;
+      color: var(--muted);
+      line-height: 2;
+    }
+
+    /* ─────────────────────────────────────────────
+       GAME PREVIEW MOCKUP
+    ───────────────────────────────────────────── */
+    .preview {
+      background: #0d0a0d;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .game-screen {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 2px solid var(--accent);
+      box-shadow:
+        0 0 0 1px var(--border),
+        0 0 30px var(--glow),
+        0 0 80px rgba(200,127,58,0.08),
+        inset 0 0 40px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .game-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.07) 3px,
+        rgba(0,0,0,0.07) 6px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .game-titlebar {
+      background: var(--accent);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .game-titlebar-text {
+      font-size: 7px;
+      color: #1a0e06;
+      letter-spacing: 0.1em;
+    }
+
+    .game-titlebar-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .titlebar-dot {
+      width: 7px; height: 7px;
+      background: rgba(0,0,0,0.3);
+    }
+
+    .game-body {
+      padding: 1.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .game-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .game-row-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .stat-block {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      font-size: 6px;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .stat-value {
+      font-size: 9px;
+      color: var(--accent2);
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value.highlight {
+      color: var(--text);
+    }
+
+    .game-bar-row {
+      margin-bottom: 1rem;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 6px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      letter-spacing: 0.1em;
+    }
+
+    .bar-track {
+      height: 8px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      position: relative;
+    }
+
+    .bar-fill::after {
+      content: '';
+      position: absolute;
+      top: 2px; bottom: 2px;
+      left: 0; right: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,0.3) 3px,
+        rgba(0,0,0,0.3) 4px
+      );
+    }
+
+    .bar-health { background: #b43a3a; width: 72%; }
+    .bar-stamina { background: #3a7ab4; width: 55%; }
+    .bar-heat { background: #c87f3a; width: 38%; }
+
+    .game-log {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      margin-top: 1rem;
+    }
+
+    .log-entry {
+      font-size: 6px;
+      color: var(--muted);
+      line-height: 2.2;
+      letter-spacing: 0.06em;
+    }
+
+    .log-entry .log-accent { color: var(--accent2); }
+    .log-entry .log-danger { color: #e05050; }
+    .log-entry .log-good { color: #50c878; }
+
+    .game-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 10px;
+      background: var(--accent);
+      vertical-align: middle;
+      animation: blink 1.1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* ─────────────────────────────────────────────
+       CTA FOOTER
+    ───────────────────────────────────────────── */
+    .cta-footer {
+      text-align: center;
+      background: radial-gradient(ellipse 60% 60% at 50% 100%, rgba(200,127,58,0.1) 0%, transparent 70%);
+      border-top: 1px solid var(--border);
+    }
+
+    .cta-big-btn {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto 1.5rem;
+      background: var(--accent);
+      color: #1a0e06;
+      font-family: var(--font);
+      font-size: clamp(8px, 1.8vw, 11px);
+      padding: 20px 24px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-align: center;
+      transition:
+        background var(--ease-int),
+        box-shadow var(--ease-int),
+        transform var(--ease-int);
+      clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    }
+
+    .cta-big-btn:hover {
+      background: var(--accent2);
+      box-shadow: 0 0 40px var(--glow-str), 0 0 100px var(--glow);
+      transform: translateY(-3px);
+    }
+
+    .cta-big-btn:active { transform: translateY(0); }
+
+    .cta-sub {
+      font-size: 7px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 3rem;
+    }
+
+    .cta-sub span {
+      color: var(--accent);
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0 0.5rem;
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color var(--ease-int);
+    }
+
+    .footer-links a:hover { color: var(--accent); }
+
+    .footer-copy {
+      font-size: 6px;
+      color: #3a2a1a;
+      letter-spacing: 0.08em;
+    }
+
+    /* ─────────────────────────────────────────────
+       SCROLL REVEAL (CSS scroll-driven)
+    ───────────────────────────────────────────── */
+    .reveal {
+      opacity: 1; /* fallback */
+    }
+
+    @supports (animation-timeline: scroll()) {
+      .reveal {
+        opacity: 0;
+        animation: reveal-fade linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 80%;
+      }
+
+      @keyframes reveal-fade {
+        to { opacity: 1; }
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       DECORATIVE ELEMENTS
+    ───────────────────────────────────────────── */
+    .corner-decoration {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      pointer-events: none;
+    }
+
+    .corner-tl { top: 0; left: 0; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner-tr { top: 0; right: 0; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+    .corner-bl { bottom: 0; left: 0; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+    .corner-br { bottom: 0; right: 0; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+    /* ─────────────────────────────────────────────
+       PIXEL DIVIDER
+    ───────────────────────────────────────────── */
+    .pixel-divider {
+      text-align: center;
+      font-size: 8px;
+      color: var(--border);
+      letter-spacing: 0.2em;
+      padding: 0.5rem 0;
+      user-select: none;
+    }
+
+    /* ─────────────────────────────────────────────
+       RESPONSIVE TWEAKS
+    ───────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .hero-buttons { flex-direction: column; align-items: stretch; }
+      .btn-primary, .btn-secondary { text-align: center; }
+      .game-row-3 { grid-template-columns: 1fr 1fr; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ─────────────────────────────────────────────
+       PREFERS REDUCED MOTION
+    ───────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════
+       NAV
+  ═══════════════════════════════════════ -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" aria-label="Dealer Life Simulator home">
+        <!-- Pixel skull/coin SVG inline -->
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="20" height="20" fill="none"/>
+          <!-- Coin circle -->
+          <circle cx="10" cy="10" r="9" stroke="#c87f3a" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="6" stroke="#c87f3a" stroke-width="1" stroke-dasharray="2 1.5"/>
+          <!-- Skull shape -->
+          <rect x="6" y="5" width="8" height="7" rx="1" fill="#c87f3a"/>
+          <rect x="5" y="9" width="10" height="3" rx="1" fill="#c87f3a"/>
+          <!-- Eye sockets -->
+          <rect x="7" y="7" width="2" height="2" fill="#0a080a"/>
+          <rect x="11" y="7" width="2" height="2" fill="#0a080a"/>
+          <!-- Teeth -->
+          <rect x="7" y="13" width="2" height="2" fill="#c87f3a"/>
+          <rect x="9" y="12" width="2" height="1" fill="#c87f3a"/>
+          <rect x="11" y="13" width="2" height="2" fill="#c87f3a"/>
+        </svg>
+        DEALER LIFE
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+
+      <ul class="nav-links" id="navLinks" role="list">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-to-play">How to Play</a></li>
+        <li><a href="https://github.com/littlebeansf/dealer-life-simulator" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://www.perplexity.ai/computer/a/dealer-life-simulator-HORj9O4iRfC8i3O638kLvg" class="nav-cta" target="_blank" rel="noopener">▶ Play Now</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════
+       HERO
+  ═══════════════════════════════════════ -->
+  <section class="hero" id="home" aria-labelledby="hero-heading">
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow">dark fantasy idle rpg</div>
+
+      <h1 id="hero-heading">
+        <span class="hero-title">DEALER LIFE</span><br>
+        <span class="hero-title-line2">SIMULATOR</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        A gritty life simulator. Buy low, sell high, don't get caught.
+      </p>
+
+      <div class="hero-buttons">
+        <a
+          href="https://www.perplexity.ai/computer/a/dealer-life-simulator-HORj9O4iRfC8i3O638kLvg"
+          class="btn-primary"
+          target="_blank"
+          rel="noopener"
+          aria-label="Play Dealer Life Simulator"
+        >▶ PLAY NOW</a>
+        <a
+          href="https://github.com/littlebeansf/dealer-life-simulator"
+          class="btn-secondary"
+          target="_blank"
+          rel="noopener"
+          aria-label="View source on GitHub"
+        >★ VIEW ON GITHUB</a>
+      </div>
+
+      <div class="hero-stats" role="list">
+        <div class="stat-badge" role="listitem">10 Races</div>
+        <div class="stat-badge" role="listitem">50+ Activities</div>
+        <div class="stat-badge" role="listitem">6 Rival Gangs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       TICKER
+  ═══════════════════════════════════════ -->
+  <div class="ticker" aria-hidden="true" role="marquee">
+    <div class="ticker-inner">
+      <span class="ticker-text">⚗ Brew Moonleaf &nbsp;·&nbsp; 💀 Evade the guards &nbsp;·&nbsp; ⚔ War with the Iron Wolves &nbsp;·&nbsp; 💰 Sell Dragon Resin for 340g &nbsp;·&nbsp; 🎲 Win 90g at the backroom table &nbsp;·&nbsp; ❤ Fall in love with a merchant &nbsp;·&nbsp; 🏴 Expand territory in Goblinland &nbsp;·&nbsp; ⚗ Brew Moonleaf &nbsp;·&nbsp; 💀 Evade the guards &nbsp;·&nbsp; ⚔ War with the Iron Wolves &nbsp;·&nbsp; 💰 Sell Dragon Resin for 340g &nbsp;·&nbsp; 🎲 Win 90g at the backroom table &nbsp;·&nbsp; ❤ Fall in love with a merchant &nbsp;·&nbsp; 🏴 Expand territory in Goblinland &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      <span class="ticker-text" aria-hidden="true">⚗ Brew Moonleaf &nbsp;·&nbsp; 💀 Evade the guards &nbsp;·&nbsp; ⚔ War with the Iron Wolves &nbsp;·&nbsp; 💰 Sell Dragon Resin for 340g &nbsp;·&nbsp; 🎲 Win 90g at the backroom table &nbsp;·&nbsp; ❤ Fall in love with a merchant &nbsp;·&nbsp; 🏴 Expand territory in Goblinland &nbsp;·&nbsp; ⚗ Brew Moonleaf &nbsp;·&nbsp; 💀 Evade the guards &nbsp;·&nbsp; ⚔ War with the Iron Wolves &nbsp;·&nbsp; 💰 Sell Dragon Resin for 340g &nbsp;·&nbsp; 🎲 Win 90g at the backroom table &nbsp;·&nbsp; ❤ Fall in love with a merchant &nbsp;·&nbsp; 🏴 Expand territory in Goblinland &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       FEATURES
+  ═══════════════════════════════════════ -->
+  <section class="features" id="features" aria-labelledby="features-heading">
+    <div class="section-inner">
+      <h2 class="section-title reveal" id="features-heading">EVERYTHING A DEALER NEEDS</h2>
+      <div class="section-divider reveal"></div>
+
+      <div class="features-grid reveal">
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🧬</span>
+          <h3 class="feature-title">10 Playable Races</h3>
+          <p class="feature-desc">Vampire, Elf, Orc, Goblin, Dragonkin and more. Each race carries unique bonuses, passives, and story paths.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🏙</span>
+          <h3 class="feature-title">10 Locations</h3>
+          <p class="feature-desc">Travel between dangerous territories. Each district has its own black markets, NPCs, gang presence, and law enforcement.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">⚔️</span>
+          <h3 class="feature-title">Gang System</h3>
+          <p class="feature-desc">6 rival gangs compete for dominance. Form alliances, declare war, extort rivals, and expand your territory block by block.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">👥</span>
+          <h3 class="feature-title">People &amp; Relations</h3>
+          <p class="feature-desc">Build trust with 50+ NPCs. Romance a fence, befriend a guard captain, betray a supplier, or extort a merchant.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">📈</span>
+          <h3 class="feature-title">Deep Economy</h3>
+          <p class="feature-desc">Dynamic prices shift with supply and demand. Manage your heat level, underworld reputation, and public standing carefully.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-icon" aria-hidden="true">🎲</span>
+          <h3 class="feature-title">Life Events</h3>
+          <p class="feature-desc">Random events trigger every year. Age, prosper, fall in love, get arrested, or die. No two runs are ever the same.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       HOW TO PLAY
+  ═══════════════════════════════════════ -->
+  <section id="how-to-play" aria-labelledby="htp-heading">
+    <div class="section-inner">
+      <h2 class="section-title reveal" id="htp-heading">HOW TO PLAY</h2>
+      <div class="section-divider reveal"></div>
+
+      <div class="htp-grid reveal">
+        <div class="htp-step">
+          <div class="htp-number">01</div>
+          <span class="htp-icon" aria-hidden="true">🧑</span>
+          <h3 class="htp-title">Create Your Character</h3>
+          <p class="htp-desc">Pick your race, name, and backstory. Start your life from age 0 with nothing but ambition and a few coins.</p>
+        </div>
+
+        <div class="htp-step">
+          <div class="htp-number">02</div>
+          <span class="htp-icon" aria-hidden="true">💊</span>
+          <h3 class="htp-title">Trade &amp; Survive</h3>
+          <p class="htp-desc">Buy and sell contraband across districts. Manage heat, stamina, and coin. Keep the guards off your back.</p>
+        </div>
+
+        <div class="htp-step">
+          <div class="htp-number">03</div>
+          <span class="htp-icon" aria-hidden="true">👑</span>
+          <h3 class="htp-title">Build Your Empire</h3>
+          <p class="htp-desc">Recruit gang members, expand territory, and climb the underworld hierarchy. Become the most feared dealer alive.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       GAME PREVIEW MOCKUP
+  ═══════════════════════════════════════ -->
+  <section class="preview" aria-labelledby="preview-heading">
+    <div class="section-inner">
+      <h2 class="section-title reveal" id="preview-heading">GAME PREVIEW</h2>
+      <div class="section-divider reveal"></div>
+
+      <div class="game-screen reveal" role="img" aria-label="Dealer Life Simulator game screen mockup showing character stats">
+        <div class="corner-decoration corner-tl"></div>
+        <div class="corner-decoration corner-tr"></div>
+        <div class="corner-decoration corner-bl"></div>
+        <div class="corner-decoration corner-br"></div>
+
+        <div class="game-titlebar" aria-hidden="true">
+          <span class="game-titlebar-text">DEALER LIFE SIMULATOR v0.9.1</span>
+          <div class="game-titlebar-dots">
+            <div class="titlebar-dot"></div>
+            <div class="titlebar-dot"></div>
+            <div class="titlebar-dot"></div>
+          </div>
+        </div>
+
+        <div class="game-body">
+          <!-- Row 1: Name + Location -->
+          <div class="game-row">
+            <div class="stat-block">
+              <span class="stat-label">Character</span>
+              <span class="stat-value highlight">Zarakh</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Location</span>
+              <span class="stat-value">Shadowfen Docks</span>
+            </div>
+          </div>
+
+          <!-- Row 2: Age + Race + Reputation -->
+          <div class="game-row game-row-3">
+            <div class="stat-block">
+              <span class="stat-label">Age</span>
+              <span class="stat-value">24</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Race</span>
+              <span class="stat-value">Goblin</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Coin</span>
+              <span class="stat-value">💰 340g</span>
+            </div>
+          </div>
+
+          <!-- Bars -->
+          <div class="game-bar-row">
+            <div class="bar-label">
+              <span>❤ HEALTH</span>
+              <span>72 / 100</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill bar-health"></div>
+            </div>
+          </div>
+
+          <div class="game-bar-row">
+            <div class="bar-label">
+              <span>⚡ STAMINA</span>
+              <span>55 / 100</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill bar-stamina"></div>
+            </div>
+          </div>
+
+          <div class="game-bar-row">
+            <div class="bar-label">
+              <span>🔥 HEAT</span>
+              <span>38 / 100</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill bar-heat"></div>
+            </div>
+          </div>
+
+          <!-- Log -->
+          <div class="game-log" aria-label="Game event log">
+            <div class="log-entry">Year 24 › <span class="log-good">Sold 4x Moonleaf to Grizzak (+120g)</span></div>
+            <div class="log-entry">Year 24 › <span class="log-danger">Iron Wolves marked your stall — heat +12</span></div>
+            <div class="log-entry">Year 24 › <span class="log-accent">Mira the fence offers a new trade route</span></div>
+            <div class="log-entry">Year 25 › Awaiting your move... <span class="game-cursor" aria-hidden="true"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       CTA FOOTER
+  ═══════════════════════════════════════ -->
+  <section class="cta-footer" aria-labelledby="cta-heading">
+    <div class="section-inner" style="text-align:center;">
+      <h2 class="section-title reveal" id="cta-heading" style="margin-bottom:0.6rem;">READY TO DEAL?</h2>
+      <div class="section-divider reveal"></div>
+
+      <a
+        href="https://www.perplexity.ai/computer/a/dealer-life-simulator-HORj9O4iRfC8i3O638kLvg"
+        class="cta-big-btn reveal"
+        target="_blank"
+        rel="noopener"
+        aria-label="Start your criminal life - Play Dealer Life Simulator"
+      >
+        START YOUR CRIMINAL LIFE
+      </a>
+
+      <p class="cta-sub reveal">
+        <span>Free to play</span> &nbsp;·&nbsp; <span>No account needed</span> &nbsp;·&nbsp; <span>Auto-save</span>
+      </p>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <ul class="footer-links">
+          <li><a href="https://www.perplexity.ai/computer/a/dealer-life-simulator-HORj9O4iRfC8i3O638kLvg" target="_blank" rel="noopener">▶ Play</a></li>
+          <li><a href="https://github.com/littlebeansf/dealer-life-simulator" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://littlebeansf.github.io/dealer-life-simulator/" target="_blank" rel="noopener">GH Pages</a></li>
+        </ul>
+        <p class="footer-copy">© 2025 Dealer Life Simulator · Built with pixels &amp; shadows</p>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       SCRIPTS
+  ═══════════════════════════════════════ -->
+  <script>
+    /* ──────────────────────────────────────
+       NAV TOGGLE (mobile)
+    ────────────────────────────────────── */
+    const navToggle = document.getElementById('navToggle');
+    const navLinks  = document.getElementById('navLinks');
+
+    navToggle.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', open);
+    });
+
+    // Close nav on link click (mobile)
+    navLinks.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    /* ──────────────────────────────────────
+       CANVAS PARTICLE ANIMATION
+       ~30 falling coin particles (· chars)
+    ────────────────────────────────────── */
+    (function() {
+      const canvas  = document.getElementById('particle-canvas');
+      const ctx     = canvas.getContext('2d');
+      const HERO    = canvas.parentElement;
+      const COUNT   = 32;
+      const CHARS   = ['·', '·', '·', '○', '◦', '·', '·', '◆'];
+      const COLORS  = ['#c87f3a', '#e8a050', '#d4923a', '#b06a20', '#e8c070'];
+
+      let particles = [];
+      let animId;
+
+      function resize() {
+        canvas.width  = HERO.offsetWidth;
+        canvas.height = HERO.offsetHeight;
+      }
+
+      function randomParticle(yOverride) {
+        return {
+          x:     Math.random() * canvas.width,
+          y:     yOverride !== undefined ? yOverride : Math.random() * canvas.height,
+          speed: 0.4 + Math.random() * 1.2,
+          drift: (Math.random() - 0.5) * 0.3,
+          size:  8 + Math.floor(Math.random() * 10),
+          alpha: 0.12 + Math.random() * 0.5,
+          char:  CHARS[Math.floor(Math.random() * CHARS.length)],
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          spin:  (Math.random() - 0.5) * 0.02,
+          angle: Math.random() * Math.PI * 2,
+        };
+      }
+
+      function init() {
+        resize();
+        particles = Array.from({ length: COUNT }, () => randomParticle());
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(p => {
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.font        = `${p.size}px 'Press Start 2P', monospace`;
+          ctx.fillStyle   = p.color;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur  = 6;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+          ctx.fillText(p.char, 0, 0);
+          ctx.restore();
+
+          // update
+          p.y     += p.speed;
+          p.x     += p.drift;
+          p.angle += p.spin;
+
+          // pulse alpha slightly
+          p.alpha += (Math.random() - 0.5) * 0.02;
+          p.alpha  = Math.max(0.08, Math.min(0.7, p.alpha));
+
+          // reset when off-screen
+          if (p.y > canvas.height + 20) {
+            Object.assign(p, randomParticle(-20));
+          }
+          if (p.x < -20 || p.x > canvas.width + 20) {
+            p.x = Math.random() * canvas.width;
+          }
+        });
+
+        animId = requestAnimationFrame(draw);
+      }
+
+      // Respect reduced motion
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (!prefersReduced.matches) {
+        init();
+        draw();
+      }
+
+      // Handle resize
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          cancelAnimationFrame(animId);
+          init();
+          if (!prefersReduced.matches) draw();
+        }, 150);
+      });
+    })();
+
+    /* ──────────────────────────────────────
+       SMOOTH ANCHOR SCROLL
+    ────────────────────────────────────── */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    /* ──────────────────────────────────────
+       NAV SCROLL SHADOW
+    ────────────────────────────────────── */
+    const nav = document.querySelector('.nav');
+    window.addEventListener('scroll', () => {
+      nav.style.boxShadow = window.scrollY > 20
+        ? '0 2px 20px rgba(0,0,0,0.5)'
+        : 'none';
+    }, { passive: true });
+  </script>
+</body>
+</html>

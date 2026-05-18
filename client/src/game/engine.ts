@@ -25,11 +25,21 @@ import { ITEMS, ALL_ITEM_IDS } from './data/items';
 import { LOCATIONS, LOCATION_LIST } from './data/locations';
 import { TRAVEL_EVENTS, AGE_UP_EVENTS } from './data/events';
 
-// ===== SAVE/LOAD (API-backed, works in sandboxed iframe) =====
+// ===== SAVE/LOAD (API-backed via proxy — works in sandboxed iframe + deployed) =====
+// We use the API_BASE prefix so that after deployment the __PORT_5000__ token
+// gets rewritten to the backend proxy path.
+const API_BASE = (window as any).__API_BASE__ ?? (() => {
+  const sentinel = '__PORT_5000__';
+  return sentinel.startsWith('__') ? '' : sentinel;
+})();
 
-export async function saveGame(state: GameState): Promise<void> {
+async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+  return fetch(`${API_BASE}${path}`, options);
+}
+
+export async function saveGame(state: GameState, slot: number = 0): Promise<void> {
   try {
-    await fetch('/api/save', {
+    await apiFetch(`/api/save/${slot}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: state }),
@@ -39,9 +49,10 @@ export async function saveGame(state: GameState): Promise<void> {
   }
 }
 
-export async function loadGame(): Promise<GameState | null> {
+export async function loadGame(slot: number = 0): Promise<GameState | null> {
   try {
-    const res = await fetch('/api/save');
+    const res = await apiFetch(`/api/save/${slot}`);
+    if (!res.ok) return null;
     const json = await res.json();
     if (!json.exists) return null;
     const data = json.data as GameState;
@@ -58,22 +69,38 @@ export async function loadGame(): Promise<GameState | null> {
   }
 }
 
-export async function deleteSave(): Promise<void> {
+export async function deleteSave(slot: number = 0): Promise<void> {
   try {
-    await fetch('/api/save', { method: 'DELETE' });
+    await apiFetch(`/api/save/${slot}`, { method: 'DELETE' });
   } catch (e) {
     console.error('Delete save failed', e);
   }
 }
 
-export async function hasSave(): Promise<boolean> {
+export async function hasSave(slot: number = 0): Promise<boolean> {
   try {
-    const res = await fetch('/api/save');
+    const res = await apiFetch(`/api/save/${slot}`);
+    if (!res.ok) return false;
     const json = await res.json();
     return json.exists;
   } catch {
     return false;
   }
+}
+
+export async function listSaves(): Promise<Array<{ slot: number; exists: boolean; data: GameState | null }>> {
+  const slots = [0, 1, 2];
+  const results = await Promise.all(slots.map(async (slot) => {
+    try {
+      const res = await apiFetch(`/api/save/${slot}`);
+      if (!res.ok) return { slot, exists: false, data: null };
+      const json = await res.json();
+      return { slot, exists: json.exists, data: json.exists ? (json.data as GameState) : null };
+    } catch {
+      return { slot, exists: false, data: null };
+    }
+  }));
+  return results;
 }
 
 // ===== RANDOM =====
